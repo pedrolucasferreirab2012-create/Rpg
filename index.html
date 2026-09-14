@@ -326,3 +326,164 @@
   #btnEnviar:active{ transform:scale(0.88); }
   #btnEnviar:disabled{ opacity:0.5; }
   .btn-som{ font-size:16px; }
+
+  /* ---------- GRADE DE ESCOLHA (RAÇA / CLASSE) ---------- */
+  .grade-opcoes{
+    display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-top:6px;
+  }
+  .opcao-grade{
+    background:var(--ink-2); border:1px solid var(--line); border-radius:6px;
+    padding:14px 10px; text-align:center; color:var(--parchment);
+    font-family:'EB Garamond', serif; font-size:15px; cursor:pointer;
+    transition:transform .15s ease, border-color .15s ease, background .15s ease;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .opcao-grade .emoji{ font-size:26px; }
+  .opcao-grade:active{ transform:scale(0.96); }
+  .opcao-grade.selecionada{ border-color:var(--gold-bright); background:var(--ink-3); box-shadow:0 0 14px rgba(217,172,74,0.35); }
+  .opcao-grade.especial{ border-color:var(--wine); }
+  .opcao-grade.especial.selecionada{ border-color:var(--gold-bright); }
+  .subtitulo-passo{ font-family:'Cinzel', serif; font-size:19px; color:var(--gold-bright); margin:4px 0 2px; text-align:center; }
+  .desc-passo{ text-align:center; font-size:15px; color:#c9bfa0; margin:0 0 4px; }
+
+  .campo-toggle{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    background:var(--ink-2); border:1px solid var(--line); border-radius:6px;
+    padding:14px 16px; margin:14px 0;
+  }
+  .campo-toggle .texto-toggle{ flex:1; }
+  .campo-toggle .texto-toggle b{ display:block; font-family:'Cinzel', serif; font-size:15px; color:var(--gold-bright); margin-bottom:3px; }
+  .campo-toggle .texto-toggle small{ color:#c9bfa0; }
+  .chave{ position:relative; width:48px; height:26px; flex-shrink:0; }
+  .chave input{ opacity:0; width:0; height:0; }
+  .chave .trilho{
+    position:absolute; inset:0; background:var(--ink-3); border:1px solid var(--line);
+    border-radius:14px; cursor:pointer; transition:background .2s ease;
+  }
+  .chave .trilho::before{
+    content:''; position:absolute; width:18px; height:18px; left:3px; top:3px;
+    background:var(--parchment); border-radius:50%; transition:transform .2s ease;
+  }
+  .chave input:checked + .trilho{ background:var(--wine); }
+  .chave input:checked + .trilho::before{ transform:translateX(22px); background:var(--gold-bright); }
+
+  .passo-nav{ display:flex; gap:10px; margin-top:18px; }
+  .passo-nav button{ flex:1; }
+  .btn-voltar-passo{
+    font-family:'Cinzel', serif; font-size:15px; letter-spacing:1px; padding:14px;
+    background:transparent; color:var(--parchment); border:1px solid var(--line); border-radius:2px; cursor:pointer;
+  }
+
+  /* ---------- PAINÉIS EXTRAS (INVENTÁRIO / COMBATE) ---------- */
+  #inventario{
+    padding:0 18px; background:var(--ink-2);
+    border-bottom:1px solid transparent; font-size:15px; line-height:1.6;
+    flex-shrink:0; max-height:0; overflow-y:auto;
+    transition:max-height .4s ease, padding .4s ease, border-color .4s ease;
+  }
+  #inventario.mostrar{ display:block; max-height:34vh; padding:16px 18px; border-bottom-color:var(--line); }
+  .item-inventario{ display:flex; justify-content:space-between; border-bottom:1px dashed var(--line); padding:6px 0; }
+  .item-inventario:last-child{ border-bottom:none; }
+
+  .painel-combate{
+    flex-shrink:0; margin:10px 14px; padding:12px 14px; border:1px solid var(--wine);
+    border-radius:6px; background:var(--ink-2); animation:surgir .35s ease both;
+  }
+  .painel-combate .titulo-combate{ font-family:'Cinzel', serif; color:var(--gold-bright); text-align:center; margin-bottom:8px; letter-spacing:1px; }
+  .linha-combate{ display:flex; justify-content:space-between; align-items:center; gap:10px; margin-bottom:6px; }
+  .linha-combate .nome-combate{ font-weight:bold; min-width:70px; }
+  .linha-combate .barra-status{ flex:1; }
+  .stats-combate{ font-size:13px; color:#c9bfa0; text-align:right; white-space:nowrap; }
+
+  .linha-ficha .reputacao-item{ display:flex; justify-content:space-between; padding:3px 0; }
+</style>
+</head>
+<body>
+
+<div id="brasas"></div>
+
+<!-- ===================== MENU DE SLOTS ===================== -->
+<div id="menu">
+  <div class="sigil"></div>
+  <h1>O Mestre</h1>
+  <p class="lead">Três lugares na mesa. Escolha continuar uma jornada ou começar outra do zero.</p>
+  <div class="slots" id="listaSlots">
+    <div class="slot vazio">
+      <span>Slot vazio</span>
+      <button class="btn-criar" data-i="0" data-acao="criar">+ Criar personagem</button>
+    </div>
+
+    <div class="slot vazio">
+      <span>Slot vazio</span>
+      <button class="btn-criar" data-i="1" data-acao="criar">+ Criar personagem</button>
+    </div>
+
+    <div class="slot vazio">
+      <span>Slot vazio</span>
+      <button class="btn-criar" data-i="2" data-acao="criar">+ Criar personagem</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== CRIAÇÃO ===================== -->
+<div id="criacao">
+  <button class="voltar-link" id="btnVoltarMenu">‹ voltar ao menu</button>
+  <p class="aviso">Sua jornada sempre começa no instante em que você nasce — um recém-nascido chegando a este mundo. Tudo o que você descrever aqui é sobre quem esse personagem vai se tornar conforme crescer.</p>
+
+  <div class="campo">
+    <label>Como vão te chamar</label>
+    <input type="text" id="inNome" placeholder="Ex: Kael, Ariane, o Corvo...">
+  </div>
+
+  <div class="campo">
+    <label>Quem você vai se tornar</label>
+    <textarea id="inPersonagem" placeholder="Raça, jeito de ser, talentos, o que você vai fazer bem quando crescer. Pode ser bem livre."></textarea>
+    <small>Pode deixar em branco — eu proponho ideias pra você escolher conforme a história avança.</small>
+  </div>
+
+  <div class="campo">
+    <label>O mundo onde isso acontece</label>
+    <textarea id="inMundo" placeholder="Ex: um reino medieval em guerra, ilhas flutuantes... ou deixe em branco."></textarea>
+  </div>
+
+  <div class="campo">
+    <label>Inspire-se em algo real (opcional)</label>
+    <input type="text" id="inInspiracao" placeholder="Ex: Mushoku Tensei, Senhor dos Anéis, Dark Souls...">
+    <small>Se você citar uma obra, você vive a vida do protagonista dela — nascendo, crescendo e seguindo a jornada daquela história por dentro, com liberdade para escolher os próprios rumos. Eu aviso quando não tiver certeza de algum detalhe, em vez de inventar.</small>
+  </div>
+
+  <div class="campo">
+    <label>Modo de jogo</label>
+    <div class="modos" id="modos">
+      <button class="modo-btn selecionado" data-modo="Facil">Fácil</button>
+      <button class="modo-btn" data-modo="Medio">Médio</button>
+      <button class="modo-btn" data-modo="Dificil">Difícil</button>
+    </div>
+    <small>Muda o quanto o mundo é perigoso e as consequências das falhas.</small>
+  </div>
+
+  <div class="campo-toggle">
+    <div class="texto-toggle">
+      <b>Reputação e fama</b>
+      <small>Suas decisões mudam como as pessoas te tratam (herói, procurado, etc). Se não quiser isso no seu mundo, deixe desligado.</small>
+    </div>
+    <label class="chave">
+      <input type="checkbox" id="inReputacao" checked>
+      <span class="trilho"></span>
+    </label>
+  </div>
+
+  <button class="comecar" id="btnComecar">Continuar ›</button>
+</div>
+
+<!-- ===================== ESCOLHA DE RAÇA ===================== -->
+<div id="telaRaca">
+  <button class="voltar-link" id="btnVoltarCriacao">‹ voltar</button>
+  <p class="subtitulo-passo">Qual será sua raça?</p>
+  <p class="desc-passo">Ela nasce com você — mesmo sendo bebê, já carrega os traços da sua espécie.</p>
+  <div class="grade-opcoes" id="gradeRacas"></div>
+  <div class="passo-nav">
+    <button class="comecar" id="btnConfirmarRaca">Continuar ›</button>
+  </div>
+</div>
+

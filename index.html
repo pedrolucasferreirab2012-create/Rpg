@@ -507,3 +507,504 @@ Estado: uma frase curta sobre a condição atual
 `;
   }
   
+/* ---------------- STORAGE ---------------- */
+
+  function carregarSlots(){
+    try{
+      const bruto = localStorage.getItem(CHAVE_STORAGE);
+      slots = bruto ? JSON.parse(bruto) : [];
+    }catch(e){ slots = []; }
+    while(slots.length < NUM_SLOTS) slots.push(null);
+  }
+
+  function salvarSlots(){
+    try{
+      localStorage.setItem(CHAVE_STORAGE, JSON.stringify(slots));
+    }catch(e){ console.error("Não foi possível salvar o progresso:", e); }
+  }
+
+  function salvarProgressoAtual(){
+    if(slotAtual < 0) return;
+    slots[slotAtual] = {
+      ficha: ficha,
+      historico: historico,
+      mensagensExibidas: mensagensExibidas
+    };
+    salvarSlots();
+  }
+
+  /* ---------------- MENU ---------------- */
+
+  function renderMenu(){
+    listaSlots.innerHTML = "";
+    for(let i=0; i<NUM_SLOTS; i++){
+      const dados = slots[i];
+      const div = document.createElement("div");
+      div.className = "slot";
+      if(dados){
+        div.innerHTML = `
+          <p class="slot-nome">${dados.ficha.nome || "Sem nome"}</p>
+          <p class="slot-info">${dados.ficha.idade || "recém-nascido"} · Nível ${dados.ficha.nivel} · ${dados.ficha.mundo ? dados.ficha.mundo.slice(0,60) : "mundo ainda sendo descoberto"}</p>
+          <div class="slot-acoes">
+            <button class="btn-continuar" data-i="${i}" data-acao="continuar">Continuar</button>
+            <button class="btn-apagar" data-i="${i}" data-acao="apagar">Apagar</button>
+          </div>
+        `;
+      } else {
+        div.className = "slot vazio";
+        div.innerHTML = `<span>Slot vazio</span><button class="btn-criar" data-i="${i}" data-acao="criar">+ Criar personagem</button>`;
+      }
+      listaSlots.appendChild(div);
+    }
+  }
+
+  listaSlots.addEventListener("click", function(e){
+    const btn = e.target.closest("button");
+    if(!btn) return;
+    const i = parseInt(btn.dataset.i, 10);
+    const acao = btn.dataset.acao;
+
+    if(acao === "criar"){
+      abrirCriacao(i);
+    } else if(acao === "continuar"){
+      continuarJogo(i);
+    } else if(acao === "apagar"){
+      if(confirm("Apagar este personagem e todo o progresso dele? Isso não pode ser desfeito.")){
+        slots[i] = null;
+        salvarSlots();
+        renderMenu();
+      }
+    }
+  });
+
+  function mostrarMenu(){
+    menu.style.display = "flex";
+    telaCriacao.classList.remove("ativo");
+    telaJogo.classList.remove("ativo");
+    renderMenu();
+  }
+
+  /* ---------------- CRIAÇÃO ---------------- */
+
+  function abrirCriacao(indiceSlot){
+    slotAtual = indiceSlot;
+    document.getElementById("inNome").value = "";
+    document.getElementById("inPersonagem").value = "";
+    document.getElementById("inMundo").value = "";
+    document.getElementById("inInspiracao").value = "";
+    modoSelecionadoCriacao = "Facil";
+    Array.from(modosDiv.querySelectorAll(".modo-btn")).forEach(b => b.classList.toggle("selecionado", b.dataset.modo === "Facil"));
+
+    menu.style.display = "none";
+    telaCriacao.classList.add("ativo");
+    telaJogo.classList.remove("ativo");
+  }
+
+  modosDiv.addEventListener("click", function(e){
+    const btn = e.target.closest(".modo-btn");
+    if(!btn) return;
+    modoSelecionadoCriacao = btn.dataset.modo;
+    Array.from(modosDiv.querySelectorAll(".modo-btn")).forEach(b => b.classList.toggle("selecionado", b === btn));
+  });
+
+  btnVoltarMenu.addEventListener("click", mostrarMenu);
+  btnMenuJogo.addEventListener("click", function(){
+    salvarProgressoAtual();
+    pararMusica();
+    mostrarMenu();
+  });
+
+  /* ---------------- TRILHA SONORA ---------------- */
+
+  function tocarMusica(){
+    if(!somLigado) return;
+    trilhaSonora.volume = 0.35;
+    trilhaSonora.play().catch(function(){ /* navegador pode bloquear até haver interação; ok, o clique atual já conta como interação na maioria dos casos */ });
+  }
+  function pararMusica(){
+    trilhaSonora.pause();
+  }
+  btnSom.addEventListener("click", function(){
+    somLigado = !somLigado;
+    btnSom.textContent = somLigado ? "🔊" : "🔇";
+    if(somLigado) tocarMusica(); else pararMusica();
+  });
+
+  /* ---------------- RENDER DE CHAT ---------------- */
+
+  function rolarParaFim(){ chat.scrollTop = chat.scrollHeight; }
+
+  function adicionarMensagem(tipo, texto, rotulo, registrar){
+    const div = document.createElement("div");
+    div.className = "msg " + tipo;
+    if(rotulo){
+      const r = document.createElement("span");
+      r.className = "rotulo";
+      r.textContent = rotulo;
+      div.appendChild(r);
+    }
+    const p = document.createElement("div");
+    p.textContent = texto;
+    div.appendChild(p);
+    if(tipo === "pensando"){
+      const pontos = document.createElement("span");
+      pontos.className = "pontos-pensando";
+      pontos.innerHTML = "<span></span><span></span><span></span>";
+      div.appendChild(pontos);
+    }
+    chat.appendChild(div);
+    rolarParaFim();
+    if(registrar !== false && tipo !== "pensando"){
+      mensagensExibidas.push({ tipo, texto, rotulo: rotulo || null });
+    }
+    return div;
+  }
+
+  function adicionarOpcoes(lista, registrar){
+    const wrapper = document.createElement("div");
+    wrapper.className = "opcoes";
+    lista.forEach(function(opcaoTexto){
+      const btn = document.createElement("button");
+      btn.className = "opcao-btn";
+      btn.textContent = opcaoTexto;
+      btn.addEventListener("click", function(){
+        Array.from(wrapper.querySelectorAll("button")).forEach(b => b.disabled = true);
+        btn.classList.add("escolhida");
+        setTimeout(() => enviarAcao(opcaoTexto), 150);
+      });
+      wrapper.appendChild(btn);
+    });
+    chat.appendChild(wrapper);
+    rolarParaFim();
+    if(registrar !== false){
+      mensagensExibidas.push({ tipo:"opcoes", opcoes: lista });
+    }
+  }
+
+  function extrairTexto(resposta){
+    if (typeof resposta === "string") return resposta;
+    if (resposta && resposta.message && resposta.message.content){
+      const c = resposta.message.content;
+      if (typeof c === "string") return c;
+      if (Array.isArray(c)) return c.map(item => item.text || "").join("");
+    }
+    if (resposta && resposta.text) return resposta.text;
+    return "(o mestre ficou em silêncio por um instante...)";
+  }
+
+  function processarRespostaMestre(textoBruto){
+    let texto = textoBruto;
+    let pedeRolagem = false;
+    let opcoes = [];
+    let fichaNova = null;
+
+    if(/\[ROLAR\]/i.test(texto)){
+      pedeRolagem = true;
+      texto = texto.replace(/\[ROLAR\]/i, "");
+    }
+
+    const casamentoOpcoes = texto.match(/\[OPCOES\]([\s\S]*?)\[\/OPCOES\]/i);
+    if(casamentoOpcoes){
+      opcoes = casamentoOpcoes[1].split("\n")
+        .map(l => l.replace(/^\s*\d+[\.\)]\s*/, "").trim())
+        .filter(l => l.length > 0);
+      texto = texto.replace(casamentoOpcoes[0], "");
+    }
+
+    const casamentoFicha = texto.match(/\[FICHA\]([\s\S]*?)\[\/FICHA\]/i);
+    if(casamentoFicha){
+      const bloco = casamentoFicha[1];
+      const idadeMatch = bloco.match(/Idade:\s*(.+)/i);
+      const nivelMatch = bloco.match(/Nivel:\s*(\d+)/i);
+      const hpMatch = bloco.match(/HP:\s*(\d+)\s*\/\s*(\d+)/i);
+      const estaminaMatch = bloco.match(/Estamina:\s*(\d+)\s*\/\s*(\d+)/i);
+      const poderesMatch = bloco.match(/Poderes:\s*(.+)/i);
+      const estadoMatch = bloco.match(/Estado:\s*(.+)/i);
+      fichaNova = {
+        idade: idadeMatch ? idadeMatch[1].trim() : ficha.idade,
+        nivel: nivelMatch ? parseInt(nivelMatch[1],10) : ficha.nivel,
+        hp: hpMatch ? Math.min(parseInt(hpMatch[1],10), parseInt(hpMatch[2],10)) : ficha.hp,
+        hpMax: hpMatch ? parseInt(hpMatch[2],10) : ficha.hpMax,
+        estamina: estaminaMatch ? Math.min(parseInt(estaminaMatch[1],10), parseInt(estaminaMatch[2],10)) : ficha.estamina,
+        estaminaMax: estaminaMatch ? parseInt(estaminaMatch[2],10) : ficha.estaminaMax,
+        poderes: poderesMatch ? poderesMatch[1].split(";").map(p=>p.trim()).filter(p=>p.length>0) : ficha.poderes,
+        estado: estadoMatch ? estadoMatch[1].trim() : ficha.estado
+      };
+      texto = texto.replace(casamentoFicha[0], "");
+    }
+
+    return { texto: texto.trim(), pedeRolagem, opcoes, fichaNova };
+  }
+
+  function mostrarBarraDado(mostrar){
+    barraDado.style.display = mostrar ? "flex" : "none";
+    if(mostrar){
+      textoDado.textContent = "É preciso testar sua sorte.";
+      d20Icone.textContent = "?";
+      btnRolar.disabled = false;
+    }
+  }
+
+  async function chamarIA(){
+    try{
+      return await puter.ai.chat(historico, false, { model: "gpt-4o" });
+    }catch(e1){
+      return await puter.ai.chat(historico);
+    }
+  }
+
+  async function falarComMestre(){
+    aguardandoResposta = true;
+    const bolhaPensando = adicionarMensagem("pensando", "o mestre está pensando...", null, false);
+    btnEnviar.disabled = true;
+
+    if (typeof puter === "undefined") {
+      bolhaPensando.remove();
+      adicionarMensagem("erro", "Não consegui carregar o serviço de IA. Verifique sua conexão com a internet e tente novamente.");
+      btnEnviar.disabled = false;
+      aguardandoResposta = false;
+      return;
+    }
+
+    try {
+      const resposta = await chamarIA();
+      const textoBruto = extrairTexto(resposta);
+      bolhaPensando.remove();
+
+      const { texto, pedeRolagem, opcoes, fichaNova } = processarRespostaMestre(textoBruto);
+      adicionarMensagem("mestre", texto, "O Mestre");
+      historico.push({ role:"assistant", content: textoBruto });
+
+      if(fichaNova){
+        ficha.idade = fichaNova.idade;
+        ficha.nivel = fichaNova.nivel;
+        ficha.hp = fichaNova.hp; ficha.hpMax = fichaNova.hpMax;
+        ficha.estamina = fichaNova.estamina; ficha.estaminaMax = fichaNova.estaminaMax;
+        ficha.poderes = fichaNova.poderes;
+        ficha.estado = fichaNova.estado;
+        montarFicha();
+        if(!painelFicha.classList.contains("mostrar")) bolinhaFicha.classList.add("ativa");
+      }
+
+      if(pedeRolagem){ mostrarBarraDado(true); }
+      else if(opcoes.length > 0){ adicionarOpcoes(opcoes); }
+
+      salvarProgressoAtual();
+    } catch (erro) {
+      bolhaPensando.remove();
+      const detalhe = (erro && erro.message) ? erro.message : "erro desconhecido";
+      adicionarMensagem("erro", `O mestre hesitou e a mensagem não chegou (${detalhe}). Toque em enviar de novo para tentar outra vez.`);
+      console.error(erro);
+    } finally {
+      btnEnviar.disabled = false;
+      aguardandoResposta = false;
+    }
+  }
+
+  function montarFicha(){
+    const pctHp = Math.max(0, Math.min(100, (ficha.hp/ficha.hpMax)*100));
+    const pctEst = Math.max(0, Math.min(100, (ficha.estamina/ficha.estaminaMax)*100));
+    let html = `<div class="linha-ficha"><b>${ficha.nome || "Sem nome ainda"}</b></div>`;
+    html += `<div class="linha-ficha">${ficha.personagem || "<i>Personagem ainda sendo descoberto durante o jogo.</i>"}</div>`;
+    html += `<div class="linha-ficha"><b>Mundo:</b> ${ficha.mundo || "<i>Ainda sendo descoberto.</i>"}</div>`;
+    if(ficha.inspiracao){ html += `<div class="linha-ficha"><b>Inspirado em:</b> ${ficha.inspiracao}</div>`; }
+    html += `<div class="linha-ficha"><b>Idade:</b> ${ficha.idade || "recém-nascido"} &nbsp;·&nbsp; <b>Nível:</b> ${ficha.nivel} &nbsp;·&nbsp; <b>Modo:</b> ${ficha.modo}</div>`;
+    html += `<div class="linha-ficha"><b>HP</b>
+      <div class="barra-status"><div class="preenchimento hp" style="width:${pctHp}%"></div><span class="valor-status">${ficha.hp} / ${ficha.hpMax}</span></div>
+    </div>`;
+    html += `<div class="linha-ficha"><b>Estamina</b>
+      <div class="barra-status"><div class="preenchimento estamina" style="width:${pctEst}%"></div><span class="valor-status">${ficha.estamina} / ${ficha.estaminaMax}</span></div>
+    </div>`;
+    html += `<div class="linha-ficha"><b>Estado:</b> ${ficha.estado || "—"}</div>`;
+    html += `<div class="linha-ficha"><b>Poderes:</b>`;
+    html += ficha.poderes.length > 0 ? "<ul>" + ficha.poderes.map(p=>`<li>${p}</li>`).join("") + "</ul>" : ` <i>ainda nenhum</i>`;
+    html += `</div>`;
+    painelFicha.innerHTML = html;
+  }
+
+  btnFicha.addEventListener("click", function(){
+    painelFicha.classList.toggle("mostrar");
+    bolinhaFicha.classList.remove("ativa");
+  });
+
+  /* ---------------- INICIAR / CONTINUAR ---------------- */
+
+  btnComecar.addEventListener("click", async function(){
+    const nome = document.getElementById("inNome").value.trim();
+    const personagem = document.getElementById("inPersonagem").value.trim();
+    const mundo = document.getElementById("inMundo").value.trim();
+    const inspiracao = document.getElementById("inInspiracao").value.trim();
+    const modo = modoSelecionadoCriacao;
+    const statsBase = STATS_POR_MODO[modo];
+
+    ficha = {
+      nome, personagem, mundo, inspiracao, modo,
+      nivel: 1, idade: "recém-nascido",
+      hp: statsBase.hp, hpMax: statsBase.hp,
+      estamina: statsBase.estamina, estaminaMax: statsBase.estamina,
+      poderes: [], estado: ""
+    };
+    mensagensExibidas = [];
+
+    telaCriacao.classList.remove("ativo");
+    telaJogo.classList.add("ativo");
+    tituloJogo.textContent = nome ? `A jornada de ${nome}` : "A aventura";
+    modoLabel.textContent = `Modo: ${modo === "Facil" ? "Fácil" : modo === "Medio" ? "Médio" : "Difícil"}`;
+    chat.innerHTML = "";
+    montarFicha();
+    tocarMusica();
+
+    let mensagemInicial = "Quero começar minha aventura. Quero nascer agora, como recém-nascido, e viver a vida inteira desse personagem a partir daí.\n";
+    mensagemInicial += nome ? `Meu nome vai ser ${nome}.\n` : "Ainda não escolhi um nome — sugira algumas ideias.\n";
+    mensagemInicial += personagem ? `Quem eu vou me tornar ao crescer: ${personagem}\n` : "Ainda não sei quem vou me tornar — me dê algumas ideias curtas para eu escolher conforme crescer.\n";
+    mensagemInicial += mundo ? `Sobre o mundo: ${mundo}\n` : "Ainda não decidi como é o mundo — me dê algumas ideias curtas para eu escolher.\n";
+    if(inspiracao) mensagemInicial += `Quero nascer como o protagonista de ${inspiracao} e viver a jornada dele por dentro, com liberdade de agir diferente quando eu quiser.\n`;
+    mensagemInicial += "Comece narrando o nascimento, inclua a ficha inicial do personagem (com idade de recém-nascido), e ofereça opções compatíveis com um bebê recém-nascido.";
+
+    historico = [
+      { role:"system", content: montarInstrucao() },
+      { role:"user", content: mensagemInicial }
+    ];
+
+    adicionarMensagem("jogador", "Começar aventura...");
+    salvarProgressoAtual();
+    await falarComMestre();
+  });
+
+  function continuarJogo(indiceSlot){
+    const dados = slots[indiceSlot];
+    if(!dados) return;
+    slotAtual = indiceSlot;
+    ficha = dados.ficha;
+    historico = dados.historico;
+    mensagensExibidas = dados.mensagensExibidas || [];
+
+    menu.style.display = "none";
+    telaCriacao.classList.remove("ativo");
+    telaJogo.classList.add("ativo");
+    tituloJogo.textContent = ficha.nome ? `A jornada de ${ficha.nome}` : "A aventura";
+    modoLabel.textContent = `Modo: ${ficha.modo === "Facil" ? "Fácil" : ficha.modo === "Medio" ? "Médio" : "Difícil"}`;
+    montarFicha();
+    tocarMusica();
+
+    chat.innerHTML = "";
+    mensagensExibidas.forEach(function(m){
+      if(m.tipo === "opcoes"){
+        adicionarOpcoes(m.opcoes, false);
+      } else {
+        adicionarMensagem(m.tipo, m.texto, m.rotulo, false);
+      }
+    });
+    rolarParaFim();
+  }
+
+  /* ---------------- ENTRADA DE TEXTO ---------------- */
+
+  function autoresize(){
+    entradaTexto.style.height = "auto";
+    entradaTexto.style.height = Math.min(entradaTexto.scrollHeight, 110) + "px";
+  }
+  entradaTexto.addEventListener("input", autoresize);
+
+  async function enviarAcao(texto){
+    if(aguardandoResposta) return;
+    adicionarMensagem("jogador", texto);
+    historico.push({ role:"user", content: texto });
+    await falarComMestre();
+  }
+
+  btnEnviar.addEventListener("click", function(){
+    const texto = entradaTexto.value.trim();
+    if(!texto) return;
+    entradaTexto.value = "";
+    autoresize();
+    enviarAcao(texto);
+  });
+  entradaTexto.addEventListener("keydown", function(e){
+    if(e.key === "Enter" && !e.shiftKey){
+      e.preventDefault();
+      btnEnviar.click();
+    }
+  });
+
+  /* ---------------- ROLAGEM DE DADO (70% fixo) ---------------- */
+
+  btnRolar.addEventListener("click", function(){
+    btnRolar.disabled = true;
+    textoDado.textContent = "rolando...";
+    d20Icone.classList.add("girando");
+
+    let contagem = 0;
+    const flicker = setInterval(function(){
+      d20Icone.textContent = (Math.floor(Math.random()*20)+1);
+      contagem++;
+      if(contagem > 8) clearInterval(flicker);
+    }, 65);
+
+    setTimeout(async function(){
+      clearInterval(flicker);
+      d20Icone.classList.remove("girando");
+
+      const rolagem = Math.floor(Math.random() * 20) + 1;
+      // 70% de sucesso fixo: valores 7-20 (14 de 20) são sucesso; 1-6 (6 de 20) são falha.
+      const critico = rolagem === 20 ? "critico_sucesso" : (rolagem === 1 ? "critico_falha" : null);
+      const sucesso = critico === "critico_sucesso" ? true
+                    : critico === "critico_falha" ? false
+                    : rolagem >= 7;
+
+      d20Icone.textContent = rolagem;
+
+      const divDado = document.createElement("div");
+      divDado.className = "msg dado";
+      divDado.innerHTML = `
+        <div class="dado-numero">${rolagem}</div>
+        <div class="dado-resultado ${sucesso ? "sucesso" : "falha"}">
+          ${critico === "critico_sucesso" ? "ACERTO CRÍTICO"
+            : critico === "critico_falha" ? "FALHA CRÍTICA"
+            : (sucesso ? "SUCESSO" : "FALHA")}
+        </div>
+      `;
+      chat.appendChild(divDado);
+      mensagensExibidas.push({ tipo:"dado", texto:`${rolagem} — ${sucesso ? "sucesso" : "falha"}`, rotulo:null });
+      rolarParaFim();
+
+      let relato = `[Resultado da rolagem: tirei ${rolagem} no d20. `;
+      relato += critico === "critico_sucesso" ? "Foi um acerto crítico (sucesso extraordinário)."
+              : critico === "critico_falha" ? "Foi uma falha crítica (algo dá muito errado)."
+              : (sucesso ? "Foi sucesso." : "Foi falha.");
+      relato += "] Continue a história considerando esse resultado, e atualize a ficha se fizer sentido.";
+
+      historico.push({ role:"user", content: relato });
+      mostrarBarraDado(false);
+      await falarComMestre();
+    }, 650);
+  });
+
+  /* ---------------- EFEITO DE BRASAS NO FUNDO ---------------- */
+  function criarBrasas(){
+    const container = document.getElementById("brasas");
+    const qtd = 18;
+    for(let i=0; i<qtd; i++){
+      const b = document.createElement("span");
+      const esquerda = Math.random()*100;
+      const atraso = Math.random()*14;
+      const duracao = 9 + Math.random()*10;
+      const desvio = (Math.random()*60 - 30) + "px";
+      b.style.left = esquerda + "%";
+      b.style.animationDelay = atraso + "s";
+      b.style.animationDuration = duracao + "s";
+      b.style.setProperty("--desvio", desvio);
+      container.appendChild(b);
+    }
+  }
+
+  /* ---------------- INÍCIO ---------------- */
+  carregarSlots();
+  criarBrasas();
+  mostrarMenu();
+
+})();
+</script>
+
+</body>
+</html>

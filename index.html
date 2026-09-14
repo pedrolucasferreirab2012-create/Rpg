@@ -158,4 +158,134 @@
   }
   .comecar:active{ transform:translateY(3px); box-shadow:0 2px 0 #6e5011; }
   .comecar:disabled{ opacity:0.55; }
+/* ---------- TELA DE JOGO ---------- */
+  #jogo{ display:none; flex:1; flex-direction:column; min-height:0; }
+  #jogo.ativo{ display:flex; }
+
+  .topo{
+    padding:12px 16px; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; justify-content:space-between; flex-shrink:0; gap:8px;
+  }
+  .topo .info-topo{ display:flex; flex-direction:column; min-width:0; }
+  .topo .titulo{ font-family:'Cinzel', serif; font-size:15px; letter-spacing:0.6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .topo .modo-label{ font-size:11px; font-style:italic; color:#8a809c; }
+  .topo .botoes-topo{ display:flex; gap:8px; flex-shrink:0; }
+  .topo button.btn-topo{
+    background:transparent; border:1px solid var(--line); color:var(--parchment);
+    font-family:'EB Garamond', serif; font-style:italic; font-size:13px;
+    padding:6px 12px; border-radius:2px; cursor:pointer; position:relative;
+  }
+  .topo button.btn-topo:hover{ border-color:var(--gold-bright); color:var(--gold-bright); }
+  .bolinha{
+    display:none; position:absolute; top:-4px; right:-4px;
+    width:9px; height:9px; border-radius:50%; background:var(--gold-bright);
+  }
+  .bolinha.ativa{ display:block; }
+
+  #ficha{
+    display:none; padding:16px 18px; background:var(--ink-2);
+    border-bottom:1px solid var(--line); font-size:15px; line-height:1.6;
+    flex-shrink:0; max-height:44vh; overflow-y:auto;
+  }
+  #ficha.mostrar{ display:block; }
+  #ficha b{ color:var(--gold-bright); }
+  #ficha .linha-ficha{ margin-bottom:10px; }
+  #ficha ul{ margin:4px 0 0; padding-left:18px; }
+  #ficha li{ margin-bottom:3px; }
+  .barra-status{
+    background:var(--ink-3); border-radius:8px; height:16px; overflow:hidden;
+    margin-top:4px; border:1px solid var(--line); position:relative;
+  }
+  .barra-status .preenchimento{ height:100%; border-radius:8px; transition:width .5s ease; }
+  .barra-status .preenchimento.hp{ background:linear-gradient(90deg, var(--hp), #d9707f); }
+  .barra-status .preenchimento.estamina{ background:linear-gradient(90deg, var(--estamina), #6fc2d4); }
+  .barra-status .valor-status{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:11px; color:#f2ead3; text-shadow:0 1px 2px rgba(0,0,0,0.6);
+  }
+
+  #chat{ flex:1; overflow-y:auto; padding:18px 16px; display:flex; flex-direction:column; gap:14px; }
+
+  .msg{
+    max-width:88%; padding:14px 17px; border-radius:4px;
+    line-height:1.65; font-size:18px; white-space:pre-wrap;
+    animation:surgir .35s ease both;
+  }
+  .msg.mestre{ align-self:flex-start; background:var(--parchment); color:#241a10; border-top-left-radius:0; }
+  .msg.mestre .rotulo{ display:block; font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; color:var(--wine); margin-bottom:7px; }
+  .msg.jogador{ align-self:flex-end; background:linear-gradient(180deg,#2a2438,#221d30); border:1px solid var(--line); border-top-right-radius:0; font-size:16px; }
+  .msg.pensando{ align-self:flex-start; background:var(--parchment); color:#5a4a30; font-style:italic; border-top-left-radius:0; font-size:16px; }
+  .msg.erro{ align-self:center; background:transparent; border:1px solid var(--wine); color:#e5b3ba; font-size:14px; text-align:center; }
+
+  .opcoes{ align-self:flex-start; max-width:94%; display:flex; flex-direction:column; gap:8px; animation:surgir .4s ease both; }
+  .opcao-btn{
+    text-align:left; background:var(--ink-2); border:1px solid var(--line); color:var(--parchment);
+    font-family:'EB Garamond', serif; font-size:16px; padding:12px 15px; border-radius:3px; cursor:pointer;
+    transition:transform .12s ease, border-color .12s ease, background .12s ease;
+  }
+  .opcao-btn:hover{ border-color:var(--gold-bright); }
+  .opcao-btn:active{ transform:scale(0.97); }
+  .opcao-btn:disabled{ opacity:0.35; }
+  .opcao-btn.escolhida{ border-color:var(--gold-bright); background:var(--ink-3); color:var(--gold-bright); transform:scale(1.02); }
+
+  /* ---------- ROLAGEM DE DADO ---------- */
+  .msg.dado{ align-self:center; background:var(--ink-2); border:1px solid var(--gold); text-align:center; font-family:'EB Garamond', serif; animation:surgir .3s ease both; }
+  .dado-numero{ font-family:'Cinzel', serif; font-size:38px; color:var(--gold-bright); line-height:1; margin:4px 0; animation:pop .35s ease both; }
+  .dado-resultado{ font-family:'Cinzel', serif; font-size:13px; letter-spacing:1px; }
+  .dado-resultado.sucesso{ color:#7fbf82; }
+  .dado-resultado.falha{ color:#e08d9a; }
+
+  .barra-dado{
+    flex-shrink:0; padding:16px; border-top:1px solid var(--line); background:var(--ink);
+    display:flex; flex-direction:column; align-items:center; gap:10px;
+  }
+  .barra-dado p{ margin:0; font-style:italic; color:#c9bfa0; font-size:14px; text-align:center; }
+  .d20-icone{
+    width:64px; height:64px; display:flex; align-items:center; justify-content:center;
+    font-family:'Cinzel', serif; font-size:22px; color:var(--gold-bright);
+    border:2px solid var(--gold); transform:rotate(0deg);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    background:var(--ink-2);
+  }
+  .d20-icone.girando{ animation:girarDado .55s linear; }
+  @keyframes girarDado{
+    0%{ transform:rotate(0deg) scale(1); }
+    50%{ transform:rotate(300deg) scale(1.1); }
+    100%{ transform:rotate(720deg) scale(1); }
+  }
+  .btn-rolar{
+    font-family:'Cinzel', serif; font-size:16px; letter-spacing:1px; padding:14px 36px;
+    background:linear-gradient(180deg, var(--gold-bright), var(--gold)); color:#241708;
+    border:none; border-radius:2px; cursor:pointer;
+    box-shadow:0 5px 0 #6e5011, 0 8px 16px rgba(0,0,0,0.4);
+  }
+  .btn-rolar:active{ transform:translateY(3px); box-shadow:0 2px 0 #6e5011; }
+  .btn-rolar:disabled{ opacity:0.55; }
+
+  #barraEntrada{
+    flex-shrink:0; display:flex; flex-direction:column; gap:6px;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); background:var(--ink);
+  }
+  #barraEntrada .linha{ display:flex; gap:10px; }
+  #entradaTexto{
+    flex:1; background:var(--ink-2); border:1px solid var(--line); color:var(--parchment);
+    font-family:'EB Garamond', serif; font-size:16px; padding:12px 14px; border-radius:20px; resize:none; max-height:110px;
+  }
+  #entradaTexto:focus{ outline:none; border-color:var(--gold-bright); }
+  #btnEnviar{
+    flex-shrink:0; width:48px; height:48px; border-radius:50%; border:none;
+    background:linear-gradient(180deg, var(--gold-bright), var(--gold)); color:#241708; font-size:18px; cursor:pointer;
+  }
+  #btnEnviar:disabled{ opacity:0.5; }
+</style>
+</head>
+<body>
+
+<!-- ===================== MENU DE SLOTS ===================== -->
+<div id="menu">
+  <div class="sigil"></div>
+  <h1>O Mestre</h1>
+  <p class="lead">Três lugares na mesa. Escolha continuar uma jornada ou começar outra do zero.</p>
+  <div class="slots" id="listaSlots"></div>
+</div>
   

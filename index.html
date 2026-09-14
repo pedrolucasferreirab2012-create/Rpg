@@ -288,4 +288,161 @@
   <p class="lead">Três lugares na mesa. Escolha continuar uma jornada ou começar outra do zero.</p>
   <div class="slots" id="listaSlots"></div>
 </div>
-  
+<!-- ===================== CRIAÇÃO ===================== -->
+<div id="criacao">
+  <button class="voltar-link" id="btnVoltarMenu">‹ voltar ao menu</button>
+  <p class="aviso">Importante: este arquivo usa um serviço de IA (Puter.js) que só funciona quando o site está hospedado (http/https) — abrir o arquivo direto no celular não funciona.</p>
+
+  <div class="campo">
+    <label>Como te chamam</label>
+    <input type="text" id="inNome" placeholder="Ex: Kael, Ariane, o Corvo...">
+  </div>
+
+  <div class="campo">
+    <label>Quem você é</label>
+    <textarea id="inPersonagem" placeholder="Raça, aparência, jeito de ser, o que você faz bem. Pode ser bem livre."></textarea>
+    <small>Pode deixar em branco — eu proponho ideias pra você escolher.</small>
+  </div>
+
+  <div class="campo">
+    <label>O mundo onde isso acontece</label>
+    <textarea id="inMundo" placeholder="Ex: um reino medieval em guerra, ilhas flutuantes... ou deixe em branco."></textarea>
+  </div>
+
+  <div class="campo">
+    <label>Inspire-se em algo real (opcional)</label>
+    <input type="text" id="inInspiracao" placeholder="Ex: Mushoku Tensei, Senhor dos Anéis, Dark Souls...">
+    <small>Se você citar uma obra, eu tento usar de verdade os elementos que conheço dela — e aviso quando não tiver certeza de algum detalhe, em vez de inventar.</small>
+  </div>
+
+  <div class="campo">
+    <label>Modo de jogo</label>
+    <div class="modos" id="modos">
+      <button class="modo-btn selecionado" data-modo="Facil">Fácil</button>
+      <button class="modo-btn" data-modo="Medio">Médio</button>
+      <button class="modo-btn" data-modo="Dificil">Difícil</button>
+    </div>
+    <small>Muda o quanto o mundo é perigoso e as consequências das falhas. A chance de sucesso no d20 é sempre 70%, nos três modos.</small>
+  </div>
+
+  <button class="comecar" id="btnComecar">Começar a aventura</button>
+</div>
+
+<!-- ===================== JOGO ===================== -->
+<div id="jogo">
+  <div class="topo">
+    <div class="info-topo">
+      <span class="titulo" id="tituloJogo">A aventura</span>
+      <span class="modo-label" id="modoLabel"></span>
+    </div>
+    <div class="botoes-topo">
+      <button class="btn-topo" id="btnFicha">Ficha<span class="bolinha" id="bolinhaFicha"></span></button>
+      <button class="btn-topo" id="btnMenuJogo">Menu</button>
+    </div>
+  </div>
+  <div id="ficha"></div>
+  <div id="chat"></div>
+
+  <div class="barra-dado" id="barraDado" style="display:none;">
+    <p id="textoDado">É preciso testar sua sorte.</p>
+    <div class="d20-icone" id="d20Icone">?</div>
+    <button class="btn-rolar" id="btnRolar">Rolar d20</button>
+  </div>
+
+  <div id="barraEntrada">
+    <div class="linha">
+      <textarea id="entradaTexto" rows="1" placeholder="Ou escreva sua própria ação..."></textarea>
+      <button id="btnEnviar">➤</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+  const CHAVE_STORAGE = "mestreIA_slots_v1";
+  const NUM_SLOTS = 3;
+
+  const menu = document.getElementById("menu");
+  const listaSlots = document.getElementById("listaSlots");
+  const telaCriacao = document.getElementById("criacao");
+  const telaJogo = document.getElementById("jogo");
+  const chat = document.getElementById("chat");
+  const entradaTexto = document.getElementById("entradaTexto");
+  const btnEnviar = document.getElementById("btnEnviar");
+  const btnComecar = document.getElementById("btnComecar");
+  const btnFicha = document.getElementById("btnFicha");
+  const btnMenuJogo = document.getElementById("btnMenuJogo");
+  const bolinhaFicha = document.getElementById("bolinhaFicha");
+  const painelFicha = document.getElementById("ficha");
+  const tituloJogo = document.getElementById("tituloJogo");
+  const modoLabel = document.getElementById("modoLabel");
+  const barraDado = document.getElementById("barraDado");
+  const textoDado = document.getElementById("textoDado");
+  const btnRolar = document.getElementById("btnRolar");
+  const d20Icone = document.getElementById("d20Icone");
+  const btnVoltarMenu = document.getElementById("btnVoltarMenu");
+  const modosDiv = document.getElementById("modos");
+
+  let slots = [];
+  let slotAtual = -1;
+  let modoSelecionadoCriacao = "Facil";
+  let historico = [];
+  let ficha = { nome:"", personagem:"", mundo:"", inspiracao:"", modo:"Facil", nivel:1, hp:25, hpMax:25, estamina:18, estaminaMax:18, poderes:[], estado:"" };
+  let mensagensExibidas = [];
+  let aguardandoResposta = false;
+
+  const STATS_POR_MODO = {
+    Facil:  { hp:40, estamina:25 },
+    Medio:  { hp:25, estamina:18 },
+    Dificil:{ hp:15, estamina:12 }
+  };
+
+  function montarInstrucao(){
+    return `
+Você é o Mestre de um RPG de mesa por texto, em português do Brasil.
+
+Regras fixas do seu papel:
+- Você NUNCA decide o que o personagem do jogador faz, pensa ou sente. Isso é sempre escolha do jogador.
+- Você narra o mundo, os NPCs, e as consequências das ações do jogador.
+- Mantenha a narração com 2 a 4 parágrafos curtos, vívidos, sem excesso de descrição.
+- Adapte-se ao tom que o jogador está dando à história.
+- Nunca saia do personagem de Mestre. Nunca mencione que você é uma IA ou modelo de linguagem.
+
+Inspiração em obra real:
+- Se o jogador citou uma obra real (anime, filme, livro, jogo) como inspiração para o mundo, use de verdade os elementos que você conhece dela: sistema de magia, geografia, facções, tom da história, regras do mundo.
+- Se você não tiver certeza sobre algum detalhe específico dessa obra, seja honesto: diga que não tem certeza sobre aquele detalhe específico, e ofereça 2 ou 3 opções plausíveis inspiradas no estilo geral da obra, em vez de inventar informações erradas como se fossem fato.
+- Nunca ignore a referência pedida — sempre conecte a ambientação criada com o que foi pedido.
+
+Modo de dificuldade escolhido: ${ficha.modo} (afeta apenas a severidade da narrativa e das consequências, NUNCA a chance de sucesso da rolagem, que é sempre a mesma):
+- Facil: mundo mais gentil, inimigos mais fracos, perigo de dano é baixo.
+- Medio: perigo e recompensa equilibrados, ferimentos reais mas justos.
+- Dificil: mundo hostil, inimigos fortes, falhas custam bastante HP/estamina, decisões erradas têm peso real.
+
+Sistema de opções (MUITO IMPORTANTE):
+- Ao final de toda mensagem em que não estiver pedindo uma rolagem de dado, ofereça de 2 a 4 opções curtas e concretas do que o jogador pode fazer a seguir.
+- Formate exatamente assim, sem comentários extras dentro das marcações:
+[OPCOES]
+1. primeira opção
+2. segunda opção
+3. terceira opção
+[/OPCOES]
+- O jogador também pode ignorar as opções e digitar uma ação livre — continue a história a partir do que ele escrever.
+
+Sistema de dados:
+- Sempre que o jogador tentar algo arriscado ou entrar em combate, termine a mensagem com a marcação [ROLAR], sem oferecer [OPCOES] nessa mensagem, e sem resolver o resultado sozinho.
+- Você vai receber de volta o resultado da rolagem (sucesso, falha, ou crítico). Narre o que realmente acontece a partir disso, com consequências reais — inclusive na ficha (HP, estamina) quando fizer sentido.
+
+Sistema de ficha do personagem (MUITO IMPORTANTE):
+- HP inicial: ${ficha.hpMax}/${ficha.hpMax}. Estamina inicial: ${ficha.estaminaMax}/${ficha.estaminaMax}.
+- Na primeira mensagem do jogo, e sempre que o personagem evoluir ou sofrer alguma mudança (subir de nível, aprender poder, perder ou recuperar HP/estamina, ficar ferido, descansar), inclua um bloco de ficha ATUALIZADO E COMPLETO (nunca apenas o que mudou), formatado exatamente assim:
+[FICHA]
+Nivel: um número, começando em 1
+HP: atual/maximo
+Estamina: atual/maximo
+Poderes: liste todos os poderes atuais separados por ;
+Estado: uma frase curta sobre a condição atual
+[/FICHA]
+- O HP e a Estamina nunca devem passar do máximo definido. Reduza-os de forma coerente com a narrativa e o modo de dificuldade, e permita recuperação em momentos de descanso.
+`; 
+  }

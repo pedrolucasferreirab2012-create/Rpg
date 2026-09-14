@@ -1,5 +1,4 @@
-<!DOCTYPE html>
-<html lang="pt-BR">
+html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -11,10 +10,13 @@
   :root{
     --ink:#12121a;
     --ink-2:#1b1b26;
+    --ink-3:#242032;
     --parchment:#e9dfc4;
     --gold:#b6902e;
     --gold-bright:#d9ac4a;
     --wine:#7a2b3e;
+    --hp:#a4384a;
+    --estamina:#3d7a8a;
     --line:rgba(182,144,46,0.35);
   }
   *{box-sizing:border-box;}
@@ -32,12 +34,26 @@
     overflow:hidden;
   }
 
-  /* ---------- TELA DE CRIAÇÃO ---------- */
-  #criacao{
+  @keyframes surgir{
+    from{ opacity:0; transform:translateY(10px); }
+    to{ opacity:1; transform:translateY(0); }
+  }
+  @keyframes pop{
+    0%{ transform:scale(0.7); opacity:0; }
+    60%{ transform:scale(1.12); opacity:1; }
+    100%{ transform:scale(1); }
+  }
+  @keyframes brilhoOuro{
+    0%,100%{ box-shadow:0 0 0 rgba(217,172,74,0); }
+    50%{ box-shadow:0 0 18px rgba(217,172,74,0.55); }
+  }
+
+  /* ---------- TELA DE MENU (SLOTS) ---------- */
+  #menu{
     flex:1;
     display:flex;
     flex-direction:column;
-    padding:32px 22px 24px;
+    padding:38px 20px;
     overflow-y:auto;
   }
   .sigil{
@@ -55,7 +71,7 @@
   }
   h1{
     font-family:'Cinzel', serif;
-    font-size:clamp(24px,7vw,34px);
+    font-size:clamp(26px,7vw,36px);
     text-align:center;
     margin:0 0 8px;
   }
@@ -65,309 +81,218 @@
     font-style:italic;
     font-size:16px;
     max-width:420px;
-    margin:0 auto 26px;
+    margin:0 auto 30px;
     line-height:1.5;
   }
-  .aviso{
-    max-width:460px;
-    margin:0 auto 22px;
-    padding:12px 14px;
+  .slots{ max-width:480px; width:100%; margin:0 auto; display:flex; flex-direction:column; gap:14px; }
+  .slot{
     border:1px solid var(--line);
     background:var(--ink-2);
-    font-size:14px;
-    line-height:1.5;
-    color:#c9bfa0;
+    border-radius:4px;
+    padding:16px 18px;
+    animation:surgir .4s ease both;
+  }
+  .slot.vazio{
+    display:flex; align-items:center; justify-content:space-between;
+    color:#8a809c; font-style:italic;
+  }
+  .slot-nome{ font-family:'Cinzel', serif; font-size:17px; color:var(--gold-bright); margin:0 0 4px; }
+  .slot-info{ font-size:14px; color:#c9bfa0; margin:0 0 12px; line-height:1.4; }
+  .slot-acoes{ display:flex; gap:10px; }
+  .slot-acoes button{
+    font-family:'EB Garamond', serif; font-style:italic; font-size:14px;
+    padding:8px 16px; border-radius:2px; cursor:pointer;
+  }
+  .btn-continuar{ background:linear-gradient(180deg, var(--gold-bright), var(--gold)); color:#241708; border:none; }
+  .btn-apagar{ background:transparent; border:1px solid var(--line); color:#c9bfa0; }
+  .btn-criar{ background:transparent; border:1px dashed var(--line); color:var(--gold-bright); font-family:'EB Garamond', serif; font-style:italic; font-size:15px; padding:10px 14px; border-radius:2px; cursor:pointer; }
+
+  /* ---------- TELA DE CRIAÇÃO ---------- */
+  #criacao{
+    display:none;
+    flex:1;
+    flex-direction:column;
+    padding:32px 22px 24px;
+    overflow-y:auto;
+  }
+  #criacao.ativo{ display:flex; }
+  .voltar-link{
+    align-self:flex-start;
+    background:none; border:none; color:#8a809c; font-family:'EB Garamond', serif;
+    font-style:italic; font-size:14px; cursor:pointer; margin-bottom:10px; padding:0;
+  }
+  .aviso{
+    max-width:460px; margin:0 auto 22px; padding:12px 14px;
+    border:1px solid var(--line); background:var(--ink-2);
+    font-size:14px; line-height:1.5; color:#c9bfa0;
   }
   .campo{ margin-bottom:20px; max-width:460px; width:100%; margin-left:auto; margin-right:auto; }
   .campo label{
-    display:block;
-    font-family:'Cinzel', serif;
-    font-size:12px;
-    letter-spacing:1.2px;
-    color:var(--gold-bright);
-    margin-bottom:6px;
+    display:block; font-family:'Cinzel', serif; font-size:12px;
+    letter-spacing:1.2px; color:var(--gold-bright); margin-bottom:6px;
   }
-  .campo small{
-    display:block;
-    color:#8a809c;
-    font-style:italic;
-    font-size:13px;
-    margin-top:4px;
-  }
+  .campo small{ display:block; color:#8a809c; font-style:italic; font-size:13px; margin-top:4px; }
   .campo input, .campo textarea{
-    width:100%;
-    background:var(--ink-2);
-    border:1px solid var(--line);
-    color:var(--parchment);
-    font-family:'EB Garamond', serif;
-    font-size:16px;
-    padding:12px 14px;
-    border-radius:2px;
-    resize:vertical;
+    width:100%; background:var(--ink-2); border:1px solid var(--line);
+    color:var(--parchment); font-family:'EB Garamond', serif; font-size:16px;
+    padding:12px 14px; border-radius:2px; resize:vertical;
   }
   .campo textarea{ min-height:70px; }
   .campo input:focus, .campo textarea:focus{ outline:none; border-color:var(--gold-bright); }
 
+  .modos{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; max-width:460px; margin:0 auto 20px; }
+  .modo-btn{
+    background:var(--ink-2); border:1px solid var(--line); color:var(--parchment);
+    font-family:'Cinzel', serif; font-size:13px; letter-spacing:0.5px;
+    padding:12px 6px; border-radius:2px; cursor:pointer; text-align:center;
+  }
+  .modo-btn.selecionado{ border-color:var(--gold-bright); background:var(--ink-3); color:var(--gold-bright); animation:brilhoOuro 1.6s ease infinite; }
+
   .comecar{
-    display:block;
-    margin:16px auto 0;
-    font-family:'Cinzel', serif;
-    font-size:16px;
-    letter-spacing:1px;
-    padding:15px 40px;
-    background:linear-gradient(180deg, var(--gold-bright), var(--gold));
-    color:#241708;
-    border:none;
-    border-radius:2px;
-    cursor:pointer;
+    display:block; margin:16px auto 0; font-family:'Cinzel', serif; font-size:16px;
+    letter-spacing:1px; padding:15px 40px;
+    background:linear-gradient(180deg, var(--gold-bright), var(--gold)); color:#241708;
+    border:none; border-radius:2px; cursor:pointer;
     box-shadow:0 5px 0 #6e5011, 0 8px 16px rgba(0,0,0,0.4);
   }
   .comecar:active{ transform:translateY(3px); box-shadow:0 2px 0 #6e5011; }
   .comecar:disabled{ opacity:0.55; }
 
   /* ---------- TELA DE JOGO ---------- */
-  #jogo{
-    display:none;
-    flex:1;
-    flex-direction:column;
-    min-height:0;
-  }
+  #jogo{ display:none; flex:1; flex-direction:column; min-height:0; }
   #jogo.ativo{ display:flex; }
 
   .topo{
-    padding:14px 18px;
-    border-bottom:1px solid var(--line);
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    flex-shrink:0;
+    padding:12px 16px; border-bottom:1px solid var(--line);
+    display:flex; align-items:center; justify-content:space-between; flex-shrink:0; gap:8px;
   }
-  .topo .titulo{
-    font-family:'Cinzel', serif;
-    font-size:15px;
-    letter-spacing:0.6px;
+  .topo .info-topo{ display:flex; flex-direction:column; min-width:0; }
+  .topo .titulo{ font-family:'Cinzel', serif; font-size:15px; letter-spacing:0.6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .topo .modo-label{ font-size:11px; font-style:italic; color:#8a809c; }
+  .topo .botoes-topo{ display:flex; gap:8px; flex-shrink:0; }
+  .topo button.btn-topo{
+    background:transparent; border:1px solid var(--line); color:var(--parchment);
+    font-family:'EB Garamond', serif; font-style:italic; font-size:13px;
+    padding:6px 12px; border-radius:2px; cursor:pointer; position:relative;
   }
-  .topo button{
-    background:transparent;
-    border:1px solid var(--line);
-    color:var(--parchment);
-    font-family:'EB Garamond', serif;
-    font-style:italic;
-    font-size:13px;
-    padding:6px 12px;
-    border-radius:2px;
-    cursor:pointer;
-    position:relative;
-  }
-  .topo button:hover{ border-color:var(--gold-bright); color:var(--gold-bright); }
-  .topo button.piscar{ border-color:var(--gold-bright); color:var(--gold-bright); }
+  .topo button.btn-topo:hover{ border-color:var(--gold-bright); color:var(--gold-bright); }
   .bolinha{
-    display:none;
-    position:absolute;
-    top:-4px; right:-4px;
-    width:9px; height:9px;
-    border-radius:50%;
-    background:var(--gold-bright);
+    display:none; position:absolute; top:-4px; right:-4px;
+    width:9px; height:9px; border-radius:50%; background:var(--gold-bright);
   }
   .bolinha.ativa{ display:block; }
 
   #ficha{
-    display:none;
-    padding:16px 18px;
-    background:var(--ink-2);
-    border-bottom:1px solid var(--line);
-    font-size:15px;
-    line-height:1.6;
-    flex-shrink:0;
-    max-height:40vh;
-    overflow-y:auto;
+    display:none; padding:16px 18px; background:var(--ink-2);
+    border-bottom:1px solid var(--line); font-size:15px; line-height:1.6;
+    flex-shrink:0; max-height:44vh; overflow-y:auto;
   }
   #ficha.mostrar{ display:block; }
   #ficha b{ color:var(--gold-bright); }
-  #ficha .linha-ficha{ margin-bottom:8px; }
+  #ficha .linha-ficha{ margin-bottom:10px; }
   #ficha ul{ margin:4px 0 0; padding-left:18px; }
   #ficha li{ margin-bottom:3px; }
-
-  #chat{
-    flex:1;
-    overflow-y:auto;
-    padding:18px 16px;
-    display:flex;
-    flex-direction:column;
-    gap:14px;
+  .barra-status{
+    background:var(--ink-3); border-radius:8px; height:16px; overflow:hidden;
+    margin-top:4px; border:1px solid var(--line); position:relative;
   }
+  .barra-status .preenchimento{ height:100%; border-radius:8px; transition:width .5s ease; }
+  .barra-status .preenchimento.hp{ background:linear-gradient(90deg, var(--hp), #d9707f); }
+  .barra-status .preenchimento.estamina{ background:linear-gradient(90deg, var(--estamina), #6fc2d4); }
+  .barra-status .valor-status{
+    position:absolute; inset:0; display:flex; align-items:center; justify-content:center;
+    font-size:11px; color:#f2ead3; text-shadow:0 1px 2px rgba(0,0,0,0.6);
+  }
+
+  #chat{ flex:1; overflow-y:auto; padding:18px 16px; display:flex; flex-direction:column; gap:14px; }
 
   .msg{
-    max-width:86%;
-    padding:13px 16px;
-    border-radius:4px;
-    line-height:1.55;
-    font-size:16px;
-    white-space:pre-wrap;
+    max-width:88%; padding:14px 17px; border-radius:4px;
+    line-height:1.65; font-size:18px; white-space:pre-wrap;
+    animation:surgir .35s ease both;
   }
-  .msg.mestre{
-    align-self:flex-start;
-    background:var(--parchment);
-    color:#241a10;
-    border-top-left-radius:0;
-  }
-  .msg.mestre .rotulo{
-    display:block;
-    font-family:'Cinzel', serif;
-    font-size:11px;
-    letter-spacing:1px;
-    color:var(--wine);
-    margin-bottom:6px;
-  }
-  .msg.jogador{
-    align-self:flex-end;
-    background:linear-gradient(180deg,#2a2438,#221d30);
-    border:1px solid var(--line);
-    border-top-right-radius:0;
-  }
-  .msg.pensando{
-    align-self:flex-start;
-    background:var(--parchment);
-    color:#5a4a30;
-    font-style:italic;
-    border-top-left-radius:0;
-  }
-  .msg.erro{
-    align-self:center;
-    background:transparent;
-    border:1px solid var(--wine);
-    color:#e5b3ba;
-    font-size:14px;
-    text-align:center;
-  }
+  .msg.mestre{ align-self:flex-start; background:var(--parchment); color:#241a10; border-top-left-radius:0; }
+  .msg.mestre .rotulo{ display:block; font-family:'Cinzel', serif; font-size:11px; letter-spacing:1px; color:var(--wine); margin-bottom:7px; }
+  .msg.jogador{ align-self:flex-end; background:linear-gradient(180deg,#2a2438,#221d30); border:1px solid var(--line); border-top-right-radius:0; font-size:16px; }
+  .msg.pensando{ align-self:flex-start; background:var(--parchment); color:#5a4a30; font-style:italic; border-top-left-radius:0; font-size:16px; }
+  .msg.erro{ align-self:center; background:transparent; border:1px solid var(--wine); color:#e5b3ba; font-size:14px; text-align:center; }
 
-  .opcoes{
-    align-self:flex-start;
-    max-width:92%;
-    display:flex;
-    flex-direction:column;
-    gap:8px;
-  }
+  .opcoes{ align-self:flex-start; max-width:94%; display:flex; flex-direction:column; gap:8px; animation:surgir .4s ease both; }
   .opcao-btn{
-    text-align:left;
-    background:var(--ink-2);
-    border:1px solid var(--line);
-    color:var(--parchment);
-    font-family:'EB Garamond', serif;
-    font-size:15px;
-    padding:11px 14px;
-    border-radius:3px;
-    cursor:pointer;
+    text-align:left; background:var(--ink-2); border:1px solid var(--line); color:var(--parchment);
+    font-family:'EB Garamond', serif; font-size:16px; padding:12px 15px; border-radius:3px; cursor:pointer;
+    transition:transform .12s ease, border-color .12s ease, background .12s ease;
   }
   .opcao-btn:hover{ border-color:var(--gold-bright); }
-  .opcao-btn:disabled{ opacity:0.4; }
+  .opcao-btn:active{ transform:scale(0.97); }
+  .opcao-btn:disabled{ opacity:0.35; }
+  .opcao-btn.escolhida{ border-color:var(--gold-bright); background:var(--ink-3); color:var(--gold-bright); transform:scale(1.02); }
 
   /* ---------- ROLAGEM DE DADO ---------- */
-  .msg.dado{
-    align-self:center;
-    background:var(--ink-2);
-    border:1px solid var(--gold);
-    text-align:center;
-    font-family:'EB Garamond', serif;
-  }
-  .dado-numero{
-    font-family:'Cinzel', serif;
-    font-size:34px;
-    color:var(--gold-bright);
-    line-height:1;
-    margin:4px 0;
-  }
-  .dado-resultado{
-    font-family:'Cinzel', serif;
-    font-size:13px;
-    letter-spacing:1px;
-  }
+  .msg.dado{ align-self:center; background:var(--ink-2); border:1px solid var(--gold); text-align:center; font-family:'EB Garamond', serif; animation:surgir .3s ease both; }
+  .dado-numero{ font-family:'Cinzel', serif; font-size:38px; color:var(--gold-bright); line-height:1; margin:4px 0; animation:pop .35s ease both; }
+  .dado-resultado{ font-family:'Cinzel', serif; font-size:13px; letter-spacing:1px; }
   .dado-resultado.sucesso{ color:#7fbf82; }
   .dado-resultado.falha{ color:#e08d9a; }
 
   .barra-dado{
-    flex-shrink:0;
-    padding:14px;
-    border-top:1px solid var(--line);
-    background:var(--ink);
-    display:flex;
-    flex-direction:column;
-    align-items:center;
-    gap:8px;
+    flex-shrink:0; padding:16px; border-top:1px solid var(--line); background:var(--ink);
+    display:flex; flex-direction:column; align-items:center; gap:10px;
   }
-  .barra-dado p{
-    margin:0;
-    font-style:italic;
-    color:#c9bfa0;
-    font-size:14px;
-    text-align:center;
+  .barra-dado p{ margin:0; font-style:italic; color:#c9bfa0; font-size:14px; text-align:center; }
+  .d20-icone{
+    width:64px; height:64px; display:flex; align-items:center; justify-content:center;
+    font-family:'Cinzel', serif; font-size:22px; color:var(--gold-bright);
+    border:2px solid var(--gold); transform:rotate(0deg);
+    clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+    background:var(--ink-2);
+  }
+  .d20-icone.girando{ animation:girarDado .55s linear; }
+  @keyframes girarDado{
+    0%{ transform:rotate(0deg) scale(1); }
+    50%{ transform:rotate(300deg) scale(1.1); }
+    100%{ transform:rotate(720deg) scale(1); }
   }
   .btn-rolar{
-    font-family:'Cinzel', serif;
-    font-size:16px;
-    letter-spacing:1px;
-    padding:14px 36px;
-    background:linear-gradient(180deg, var(--gold-bright), var(--gold));
-    color:#241708;
-    border:none;
-    border-radius:2px;
-    cursor:pointer;
+    font-family:'Cinzel', serif; font-size:16px; letter-spacing:1px; padding:14px 36px;
+    background:linear-gradient(180deg, var(--gold-bright), var(--gold)); color:#241708;
+    border:none; border-radius:2px; cursor:pointer;
     box-shadow:0 5px 0 #6e5011, 0 8px 16px rgba(0,0,0,0.4);
   }
   .btn-rolar:active{ transform:translateY(3px); box-shadow:0 2px 0 #6e5011; }
   .btn-rolar:disabled{ opacity:0.55; }
 
   #barraEntrada{
-    flex-shrink:0;
-    display:flex;
-    flex-direction:column;
-    gap:6px;
-    padding:10px 14px calc(10px + env(safe-area-inset-bottom));
-    border-top:1px solid var(--line);
-    background:var(--ink);
+    flex-shrink:0; display:flex; flex-direction:column; gap:6px;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom)); border-top:1px solid var(--line); background:var(--ink);
   }
   #barraEntrada .linha{ display:flex; gap:10px; }
-  #barraEntrada .dica{
-    font-size:12px;
-    font-style:italic;
-    color:#7a7189;
-    padding:0 4px;
-  }
   #entradaTexto{
-    flex:1;
-    background:var(--ink-2);
-    border:1px solid var(--line);
-    color:var(--parchment);
-    font-family:'EB Garamond', serif;
-    font-size:16px;
-    padding:12px 14px;
-    border-radius:20px;
-    resize:none;
-    max-height:110px;
+    flex:1; background:var(--ink-2); border:1px solid var(--line); color:var(--parchment);
+    font-family:'EB Garamond', serif; font-size:16px; padding:12px 14px; border-radius:20px; resize:none; max-height:110px;
   }
   #entradaTexto:focus{ outline:none; border-color:var(--gold-bright); }
   #btnEnviar{
-    flex-shrink:0;
-    width:48px; height:48px;
-    border-radius:50%;
-    border:none;
-    background:linear-gradient(180deg, var(--gold-bright), var(--gold));
-    color:#241708;
-    font-size:18px;
-    cursor:pointer;
+    flex-shrink:0; width:48px; height:48px; border-radius:50%; border:none;
+    background:linear-gradient(180deg, var(--gold-bright), var(--gold)); color:#241708; font-size:18px; cursor:pointer;
   }
   #btnEnviar:disabled{ opacity:0.5; }
 </style>
 </head>
 <body>
 
-<!-- ===================== CRIAÇÃO ===================== -->
-<div id="criacao">
+<!-- ===================== MENU DE SLOTS ===================== -->
+<div id="menu">
   <div class="sigil"></div>
   <h1>O Mestre</h1>
-  <p class="lead">Não existe um mundo pronto aqui. Você decide quem é e onde está — eu só vou te ajudando a enxergar.</p>
+  <p class="lead">Três lugares na mesa. Escolha continuar uma jornada ou começar outra do zero.</p>
+  <div class="slots" id="listaSlots"></div>
+</div>
 
-  <p class="aviso">Importante: este arquivo usa um serviço de IA (Puter.js) que só funciona quando o site está hospedado (http/https) — abrir o arquivo direto no celular ou computador não funciona. Veja o passo a passo de hospedagem grátis que te mandei junto com este arquivo.</p>
+<!-- ===================== CRIAÇÃO ===================== -->
+<div id="criacao">
+  <button class="voltar-link" id="btnVoltarMenu">‹ voltar ao menu</button>
+  <p class="aviso">Importante: este arquivo usa um serviço de IA (Puter.js) que só funciona quando o site está hospedado (http/https) — abrir o arquivo direto no celular não funciona.</p>
 
   <div class="campo">
     <label>Como te chamam</label>
@@ -376,14 +301,29 @@
 
   <div class="campo">
     <label>Quem você é</label>
-    <textarea id="inPersonagem" placeholder="Descreva do seu jeito: raça, aparência, jeito de ser, o que você faz bem. Pode ser bem livre."></textarea>
-    <small>Não precisa ser detalhado. Se preferir, deixe em branco e eu proponho ideias pra você escolher.</small>
+    <textarea id="inPersonagem" placeholder="Raça, aparência, jeito de ser, o que você faz bem. Pode ser bem livre."></textarea>
+    <small>Pode deixar em branco — eu proponho ideias pra você escolher.</small>
   </div>
 
   <div class="campo">
     <label>O mundo onde isso acontece</label>
-    <textarea id="inMundo" placeholder="Ex: um reino medieval em guerra, ilhas flutuantes, uma cidade após o fim do mundo... ou deixe em branco."></textarea>
-    <small>Se não tiver ideia nenhuma, tudo bem — eu sugiro algumas e você escolhe o que combina.</small>
+    <textarea id="inMundo" placeholder="Ex: um reino medieval em guerra, ilhas flutuantes... ou deixe em branco."></textarea>
+  </div>
+
+  <div class="campo">
+    <label>Inspire-se em algo real (opcional)</label>
+    <input type="text" id="inInspiracao" placeholder="Ex: Mushoku Tensei, Senhor dos Anéis, Dark Souls...">
+    <small>Se você citar uma obra, eu tento usar de verdade os elementos que conheço dela — e aviso quando não tiver certeza de algum detalhe, em vez de inventar.</small>
+  </div>
+
+  <div class="campo">
+    <label>Modo de jogo</label>
+    <div class="modos" id="modos">
+      <button class="modo-btn selecionado" data-modo="Facil">Fácil</button>
+      <button class="modo-btn" data-modo="Medio">Médio</button>
+      <button class="modo-btn" data-modo="Dificil">Difícil</button>
+    </div>
+    <small>Muda o quanto o mundo é perigoso e as consequências das falhas. A chance de sucesso no d20 é sempre 70%, nos três modos.</small>
   </div>
 
   <button class="comecar" id="btnComecar">Começar a aventura</button>
@@ -392,15 +332,22 @@
 <!-- ===================== JOGO ===================== -->
 <div id="jogo">
   <div class="topo">
-    <span class="titulo" id="tituloJogo">A aventura</span>
-    <button id="btnFicha">Ficha<span class="bolinha" id="bolinhaFicha"></span></button>
+    <div class="info-topo">
+      <span class="titulo" id="tituloJogo">A aventura</span>
+      <span class="modo-label" id="modoLabel"></span>
+    </div>
+    <div class="botoes-topo">
+      <button class="btn-topo" id="btnFicha">Ficha<span class="bolinha" id="bolinhaFicha"></span></button>
+      <button class="btn-topo" id="btnMenuJogo">Menu</button>
+    </div>
   </div>
   <div id="ficha"></div>
   <div id="chat"></div>
 
   <div class="barra-dado" id="barraDado" style="display:none;">
     <p id="textoDado">É preciso testar sua sorte.</p>
-    <button class="btn-rolar" id="btnRolar">🎲 Rolar d20</button>
+    <div class="d20-icone" id="d20Icone">?</div>
+    <button class="btn-rolar" id="btnRolar">Rolar d20</button>
   </div>
 
   <div id="barraEntrada">
@@ -414,6 +361,11 @@
 <script>
 (function(){
 
+  const CHAVE_STORAGE = "mestreIA_slots_v1";
+  const NUM_SLOTS = 3;
+
+  const menu = document.getElementById("menu");
+  const listaSlots = document.getElementById("listaSlots");
   const telaCriacao = document.getElementById("criacao");
   const telaJogo = document.getElementById("jogo");
   const chat = document.getElementById("chat");
@@ -421,27 +373,52 @@
   const btnEnviar = document.getElementById("btnEnviar");
   const btnComecar = document.getElementById("btnComecar");
   const btnFicha = document.getElementById("btnFicha");
+  const btnMenuJogo = document.getElementById("btnMenuJogo");
   const bolinhaFicha = document.getElementById("bolinhaFicha");
   const painelFicha = document.getElementById("ficha");
   const tituloJogo = document.getElementById("tituloJogo");
+  const modoLabel = document.getElementById("modoLabel");
   const barraDado = document.getElementById("barraDado");
   const textoDado = document.getElementById("textoDado");
   const btnRolar = document.getElementById("btnRolar");
+  const d20Icone = document.getElementById("d20Icone");
+  const btnVoltarMenu = document.getElementById("btnVoltarMenu");
+  const modosDiv = document.getElementById("modos");
 
+  let slots = [];
+  let slotAtual = -1;
+  let modoSelecionadoCriacao = "Facil";
   let historico = [];
-  let ficha = { nome:"", personagem:"", mundo:"", nivel:1, poderes:[], estado:"" };
-  let dificuldadeAtual = null;
+  let ficha = { nome:"", personagem:"", mundo:"", inspiracao:"", modo:"Facil", nivel:1, hp:25, hpMax:25, estamina:18, estaminaMax:18, poderes:[], estado:"" };
+  let mensagensExibidas = [];
   let aguardandoResposta = false;
 
-  const INSTRUCAO_MESTRE = `
+  const STATS_POR_MODO = {
+    Facil:  { hp:40, estamina:25 },
+    Medio:  { hp:25, estamina:18 },
+    Dificil:{ hp:15, estamina:12 }
+  };
+
+  function montarInstrucao(){
+    return `
 Você é o Mestre de um RPG de mesa por texto, em português do Brasil.
 
 Regras fixas do seu papel:
 - Você NUNCA decide o que o personagem do jogador faz, pensa ou sente. Isso é sempre escolha do jogador.
 - Você narra o mundo, os NPCs, e as consequências das ações do jogador.
 - Mantenha a narração com 2 a 4 parágrafos curtos, vívidos, sem excesso de descrição.
-- Adapte-se ao tom que o jogador está dando à história (sombrio, cômico, heroico, etc).
+- Adapte-se ao tom que o jogador está dando à história.
 - Nunca saia do personagem de Mestre. Nunca mencione que você é uma IA ou modelo de linguagem.
+
+Inspiração em obra real:
+- Se o jogador citou uma obra real (anime, filme, livro, jogo) como inspiração para o mundo, use de verdade os elementos que você conhece dela: sistema de magia, geografia, facções, tom da história, regras do mundo.
+- Se você não tiver certeza sobre algum detalhe específico dessa obra, seja honesto: diga que não tem certeza sobre aquele detalhe específico, e ofereça 2 ou 3 opções plausíveis inspiradas no estilo geral da obra, em vez de inventar informações erradas como se fossem fato.
+- Nunca ignore a referência pedida — sempre conecte a ambientação criada com o que foi pedido.
+
+Modo de dificuldade escolhido: ${ficha.modo} (afeta apenas a severidade da narrativa e das consequências, NUNCA a chance de sucesso da rolagem, que é sempre a mesma):
+- Facil: mundo mais gentil, inimigos mais fracos, perigo de dano é baixo.
+- Medio: perigo e recompensa equilibrados, ferimentos reais mas justos.
+- Dificil: mundo hostil, inimigos fortes, falhas custam bastante HP/estamina, decisões erradas têm peso real.
 
 Sistema de opções (MUITO IMPORTANTE):
 - Ao final de toda mensagem em que não estiver pedindo uma rolagem de dado, ofereça de 2 a 4 opções curtas e concretas do que o jogador pode fazer a seguir.
@@ -451,286 +428,12 @@ Sistema de opções (MUITO IMPORTANTE):
 2. segunda opção
 3. terceira opção
 [/OPCOES]
-- O jogador também pode ignorar as opções e digitar uma ação livre — quando isso acontecer, continue a história a partir do que ele escreveu normalmente.
+- O jogador também pode ignorar as opções e digitar uma ação livre — continue a história a partir do que ele escrever.
 
 Sistema de dados:
-- Sempre que o jogador tentar algo arriscado ou entrar em combate, termine a mensagem com a marcação [ROLAR:N] (N é a dificuldade, de 5 a 18). Nessa mensagem NÃO inclua [OPCOES], e não resolva o resultado sozinho — apenas descreva a tensão do momento.
-- Depois de receber o resultado da rolagem (incluindo se foi crítico), narre o que realmente aconteceu, com consequências reais, e volte a oferecer [OPCOES] normalmente.
+- Sempre que o jogador tentar algo arriscado ou entrar em combate, termine a mensagem com a marcação [ROLAR], sem oferecer [OPCOES] nessa mensagem, e sem resolver o resultado sozinho.
+- Você vai receber de volta o resultado da rolagem (sucesso, falha, ou crítico). Narre o que realmente acontece a partir disso, com consequências reais — inclusive na ficha (HP, estamina) quando fizer sentido.
 
 Sistema de ficha do personagem (MUITO IMPORTANTE):
-- Na primeira mensagem do jogo, e sempre que o personagem evoluir (subir de nível, aprender um novo poder, ficar ferido, se recuperar, etc.), inclua um bloco de ficha ATUALIZADO E COMPLETO (nunca apenas a parte que mudou), formatado exatamente assim:
-[FICHA]
-Nivel: um número, começando em 1
-Poderes: liste todos os poderes/habilidades atuais separados por ;
-Estado: uma frase curta sobre a condição física/emocional atual
-[/FICHA]
-- O personagem deve evoluir de verdade ao longo da história: ganhar novos poderes após conquistas importantes, subir de nível após vitórias significativas (principalmente após sucessos em rolagens de dado), e refletir ferimentos, cansaço ou recuperação quando fizer sentido.
-- Sempre repita a ficha inteira e atualizada, nunca um resumo do que mudou.
-`;
-
-  function autoresize(){
-    entradaTexto.style.height = "auto";
-    entradaTexto.style.height = Math.min(entradaTexto.scrollHeight, 110) + "px";
-  }
-  entradaTexto.addEventListener("input", autoresize);
-
-  function rolarParaFim(){
-    chat.scrollTop = chat.scrollHeight;
-  }
-
-  function adicionarMensagem(tipo, texto, rotulo){
-    const div = document.createElement("div");
-    div.className = "msg " + tipo;
-    if(rotulo){
-      const r = document.createElement("span");
-      r.className = "rotulo";
-      r.textContent = rotulo;
-      div.appendChild(r);
-    }
-    const p = document.createElement("div");
-    p.textContent = texto;
-    div.appendChild(p);
-    chat.appendChild(div);
-    rolarParaFim();
-    return div;
-  }
-
-  function adicionarOpcoes(lista){
-    const wrapper = document.createElement("div");
-    wrapper.className = "opcoes";
-    lista.forEach(function(opcaoTexto){
-      const btn = document.createElement("button");
-      btn.className = "opcao-btn";
-      btn.textContent = opcaoTexto;
-      btn.addEventListener("click", function(){
-        Array.from(wrapper.querySelectorAll("button")).forEach(b => b.disabled = true);
-        enviarAcao(opcaoTexto);
-      });
-      wrapper.appendChild(btn);
-    });
-    chat.appendChild(wrapper);
-    rolarParaFim();
-  }
-
-  function extrairTexto(resposta){
-    if (typeof resposta === "string") return resposta;
-    if (resposta && resposta.message && resposta.message.content){
-      const c = resposta.message.content;
-      if (typeof c === "string") return c;
-      if (Array.isArray(c)) return c.map(item => item.text || "").join("");
-    }
-    if (resposta && resposta.text) return resposta.text;
-    return "(o mestre ficou em silêncio por um instante...)";
-  }
-
-  function processarRespostaMestre(textoBruto){
-    let texto = textoBruto;
-    let pedeRolagem = false;
-    let opcoes = [];
-    let fichaNova = null;
-
-    const casamentoRolar = texto.match(/\[ROLAR:(\d{1,2})\]/i);
-    if(casamentoRolar){
-      dificuldadeAtual = Math.max(5, Math.min(20, parseInt(casamentoRolar[1], 10)));
-      pedeRolagem = true;
-      texto = texto.replace(casamentoRolar[0], "");
-    }
-
-    const casamentoOpcoes = texto.match(/\[OPCOES\]([\s\S]*?)\[\/OPCOES\]/i);
-    if(casamentoOpcoes){
-      opcoes = casamentoOpcoes[1]
-        .split("\n")
-        .map(l => l.replace(/^\s*\d+[\.\)]\s*/, "").trim())
-        .filter(l => l.length > 0);
-      texto = texto.replace(casamentoOpcoes[0], "");
-    }
-
-    const casamentoFicha = texto.match(/\[FICHA\]([\s\S]*?)\[\/FICHA\]/i);
-    if(casamentoFicha){
-      const bloco = casamentoFicha[1];
-      const nivelMatch = bloco.match(/Nivel:\s*(\d+)/i);
-      const poderesMatch = bloco.match(/Poderes:\s*(.+)/i);
-      const estadoMatch = bloco.match(/Estado:\s*(.+)/i);
-      fichaNova = {
-        nivel: nivelMatch ? parseInt(nivelMatch[1], 10) : ficha.nivel,
-        poderes: poderesMatch ? poderesMatch[1].split(";").map(p => p.trim()).filter(p => p.length > 0) : ficha.poderes,
-        estado: estadoMatch ? estadoMatch[1].trim() : ficha.estado
-      };
-      texto = texto.replace(casamentoFicha[0], "");
-    }
-
-    return { texto: texto.trim(), pedeRolagem, opcoes, fichaNova };
-  }
-
-  function mostrarBarraDado(mostrar){
-    barraDado.style.display = mostrar ? "flex" : "none";
-    if(mostrar){
-      textoDado.textContent = `Você precisa tirar ${dificuldadeAtual} ou mais no d20.`;
-      btnRolar.disabled = false;
-    }
-  }
-
-  async function falarComMestre(){
-    aguardandoResposta = true;
-    const bolhaPensando = adicionarMensagem("pensando", "o mestre está pensando...", null);
-    btnEnviar.disabled = true;
-
-    if (typeof puter === "undefined") {
-      bolhaPensando.remove();
-      adicionarMensagem("erro", "Não consegui carregar o serviço de IA. Verifique se este arquivo está hospedado (http/https) e sua conexão com a internet, depois tente de novo.");
-      btnEnviar.disabled = false;
-      aguardandoResposta = false;
-      return;
-    }
-
-    try {
-      const resposta = await puter.ai.chat(historico);
-      const textoBruto = extrairTexto(resposta);
-      bolhaPensando.remove();
-
-      const { texto, pedeRolagem, opcoes, fichaNova } = processarRespostaMestre(textoBruto);
-      adicionarMensagem("mestre", texto, "O Mestre");
-      historico.push({ role:"assistant", content: textoBruto });
-
-      if(fichaNova){
-        ficha.nivel = fichaNova.nivel;
-        ficha.poderes = fichaNova.poderes;
-        ficha.estado = fichaNova.estado;
-        montarFicha();
-        if(!painelFicha.classList.contains("mostrar")){
-          bolinhaFicha.classList.add("ativa");
-        }
-      }
-
-      if(pedeRolagem){
-        mostrarBarraDado(true);
-      } else if(opcoes.length > 0){
-        adicionarOpcoes(opcoes);
-      }
-    } catch (erro) {
-      bolhaPensando.remove();
-      const detalhe = (erro && erro.message) ? erro.message : "erro desconhecido";
-      adicionarMensagem("erro", `O mestre hesitou e a mensagem não chegou (${detalhe}). Toque em enviar de novo para tentar outra vez.`);
-      console.error(erro);
-    } finally {
-      btnEnviar.disabled = false;
-      aguardandoResposta = false;
-    }
-  }
-
-  function montarFicha(){
-    let html = `<div class="linha-ficha"><b>${ficha.nome || "Sem nome ainda"}</b></div>`;
-    html += `<div class="linha-ficha">${ficha.personagem || "<i>Personagem ainda sendo descoberto durante o jogo.</i>"}</div>`;
-    html += `<div class="linha-ficha"><b>Mundo:</b> ${ficha.mundo || "<i>Ainda sendo descoberto durante o jogo.</i>"}</div>`;
-    html += `<div class="linha-ficha"><b>Nível:</b> ${ficha.nivel}</div>`;
-    html += `<div class="linha-ficha"><b>Estado:</b> ${ficha.estado || "—"}</div>`;
-    html += `<div class="linha-ficha"><b>Poderes:</b>`;
-    if(ficha.poderes.length > 0){
-      html += "<ul>" + ficha.poderes.map(p => `<li>${p}</li>`).join("") + "</ul>";
-    } else {
-      html += ` <i>ainda nenhum</i>`;
-    }
-    html += `</div>`;
-    painelFicha.innerHTML = html;
-  }
-
-  btnFicha.addEventListener("click", function(){
-    painelFicha.classList.toggle("mostrar");
-    bolinhaFicha.classList.remove("ativa");
-  });
-
-  btnComecar.addEventListener("click", async function(){
-    ficha.nome = document.getElementById("inNome").value.trim();
-    ficha.personagem = document.getElementById("inPersonagem").value.trim();
-    ficha.mundo = document.getElementById("inMundo").value.trim();
-
-    telaCriacao.style.display = "none";
-    telaJogo.classList.add("ativo");
-    tituloJogo.textContent = ficha.nome ? `A jornada de ${ficha.nome}` : "A aventura";
-    montarFicha();
-
-    let mensagemInicial = "Quero começar minha aventura.\n";
-    mensagemInicial += ficha.nome ? `Meu nome é ${ficha.nome}.\n` : "Ainda não escolhi um nome — sugira algumas ideias.\n";
-    mensagemInicial += ficha.personagem
-      ? `Sobre meu personagem: ${ficha.personagem}\n`
-      : "Ainda não sei como quero ser — me dê algumas ideias curtas para eu escolher.\n";
-    mensagemInicial += ficha.mundo
-      ? `Sobre o mundo: ${ficha.mundo}\n`
-      : "Ainda não decidi como é o mundo — me dê algumas ideias curtas para eu escolher.\n";
-    mensagemInicial += "Comece a cena me situando onde eu estou, inclua a ficha inicial do personagem, e ofereça as opções do que eu posso fazer.";
-
-    historico = [
-      { role:"system", content: INSTRUCAO_MESTRE },
-      { role:"user", content: mensagemInicial }
-    ];
-
-    adicionarMensagem("jogador", "Começar aventura...");
-    await falarComMestre();
-  });
-
-  async function enviarAcao(texto){
-    if(aguardandoResposta) return;
-    adicionarMensagem("jogador", texto);
-    historico.push({ role:"user", content: texto });
-    await falarComMestre();
-  }
-
-  btnEnviar.addEventListener("click", function(){
-    const texto = entradaTexto.value.trim();
-    if(!texto) return;
-    entradaTexto.value = "";
-    autoresize();
-    enviarAcao(texto);
-  });
-  entradaTexto.addEventListener("keydown", function(e){
-    if(e.key === "Enter" && !e.shiftKey){
-      e.preventDefault();
-      btnEnviar.click();
-    }
-  });
-
-  btnRolar.addEventListener("click", function(){
-    btnRolar.disabled = true;
-    textoDado.textContent = "rolando...";
-
-    setTimeout(async function(){
-      const rolagem = Math.floor(Math.random() * 20) + 1;
-      const critico = rolagem === 20 ? "critico_sucesso" : (rolagem === 1 ? "critico_falha" : null);
-      const sucesso = critico === "critico_sucesso" ? true
-                    : critico === "critico_falha" ? false
-                    : rolagem >= dificuldadeAtual;
-
-      const divDado = document.createElement("div");
-      divDado.className = "msg dado";
-      divDado.innerHTML = `
-        <div class="dado-numero">${rolagem}</div>
-        <div class="dado-resultado ${sucesso ? "sucesso" : "falha"}">
-          ${critico === "critico_sucesso" ? "ACERTO CRÍTICO"
-            : critico === "critico_falha" ? "FALHA CRÍTICA"
-            : (sucesso ? "SUCESSO" : "FALHA")}
-          — precisava de ${dificuldadeAtual}+
-        </div>
-      `;
-      chat.appendChild(divDado);
-      rolarParaFim();
-
-      let relato = `[Resultado da rolagem: tirei ${rolagem} no d20, contra dificuldade ${dificuldadeAtual}. `;
-      relato += critico === "critico_sucesso" ? "Foi um acerto crítico (sucesso extraordinário)."
-              : critico === "critico_falha" ? "Foi uma falha crítica (algo dá muito errado)."
-              : (sucesso ? "Foi sucesso." : "Foi falha.");
-      relato += "] Continue a história considerando esse resultado.";
-
-      historico.push({ role:"user", content: relato });
-
-      mostrarBarraDado(false);
-      dificuldadeAtual = null;
-
-      await falarComMestre();
-    }, 550);
-  });
-
-})();
-</script>
-
-</body>
-</html>
+- HP inicial: ${ficha.hpMax}/${ficha.hpMax}. Estamina inicial: ${ficha.estaminaMax}/${ficha.estaminaMax}.
+- Na primeira mensagem do jogo, e sempre que o personagem evoluir ou sofrer alguma mudança (subir de nível, aprender poder, perder ou recuperar HP/estamin

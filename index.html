@@ -487,3 +487,249 @@
   </div>
 </div>
 
+<!-- ===================== ESCOLHA DE CLASSE ===================== -->
+<div id="telaClasse">
+  <button class="voltar-link" id="btnVoltarRaca">‹ voltar</button>
+  <p class="subtitulo-passo">Que tipo de poder você vai desenvolver?</p>
+  <p class="desc-passo">É pra onde seu talento natural vai puxar conforme você cresce.</p>
+  <div class="grade-opcoes" id="gradeClasses"></div>
+  <div class="passo-nav">
+    <button class="comecar" id="btnComecarJogo">Começar a aventura</button>
+  </div>
+</div>
+
+<!-- ===================== JOGO ===================== -->
+<div id="jogo">
+  <div class="topo">
+    <div class="info-topo">
+      <span class="titulo" id="tituloJogo">A aventura</span>
+      <span class="modo-label" id="modoLabel"></span>
+    </div>
+    <div class="botoes-topo">
+      <button class="btn-topo btn-som" id="btnSom" title="Música">🔊</button>
+      <button class="btn-topo" id="btnFicha">Ficha<span class="bolinha" id="bolinhaFicha"></span></button>
+      <button class="btn-topo" id="btnInventario">Itens<span class="bolinha" id="bolinhaInventario"></span></button>
+      <button class="btn-topo" id="btnMenuJogo">Menu</button>
+    </div>
+  </div>
+  <audio id="trilhaSonora" loop preload="auto">
+    <source src="musica.mp3" type="audio/mpeg">
+  </audio>
+  <div id="ficha"></div>
+  <div id="inventario"></div>
+  <div id="chat"></div>
+  <div id="painelCombate"></div>
+
+  <div class="barra-dado" id="barraDado" style="display:none;">
+    <p id="textoDado">É preciso testar sua sorte.</p>
+    <div class="d20-icone" id="d20Icone">?</div>
+    <button class="btn-rolar" id="btnRolar">Rolar d20</button>
+  </div>
+
+  <div id="barraEntrada">
+    <div class="linha">
+      <textarea id="entradaTexto" rows="1" placeholder="Ou escreva sua própria ação..."></textarea>
+      <button id="btnEnviar">➤</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+
+  const CHAVE_STORAGE = "mestreIA_slots_v1";
+  const NUM_SLOTS = 3;
+
+  const menu = document.getElementById("menu");
+  const listaSlots = document.getElementById("listaSlots");
+  const telaCriacao = document.getElementById("criacao");
+  const telaJogo = document.getElementById("jogo");
+  const chat = document.getElementById("chat");
+  const entradaTexto = document.getElementById("entradaTexto");
+  const btnEnviar = document.getElementById("btnEnviar");
+  const btnComecar = document.getElementById("btnComecar");
+  const btnFicha = document.getElementById("btnFicha");
+  const btnMenuJogo = document.getElementById("btnMenuJogo");
+  const bolinhaFicha = document.getElementById("bolinhaFicha");
+  const painelFicha = document.getElementById("ficha");
+  const tituloJogo = document.getElementById("tituloJogo");
+  const modoLabel = document.getElementById("modoLabel");
+  const barraDado = document.getElementById("barraDado");
+  const textoDado = document.getElementById("textoDado");
+  const btnRolar = document.getElementById("btnRolar");
+  const d20Icone = document.getElementById("d20Icone");
+  const btnVoltarMenu = document.getElementById("btnVoltarMenu");
+  const modosDiv = document.getElementById("modos");
+  const trilhaSonora = document.getElementById("trilhaSonora");
+  const btnSom = document.getElementById("btnSom");
+  const telaRaca = document.getElementById("telaRaca");
+  const telaClasse = document.getElementById("telaClasse");
+  const gradeRacas = document.getElementById("gradeRacas");
+  const gradeClasses = document.getElementById("gradeClasses");
+  const btnVoltarCriacao = document.getElementById("btnVoltarCriacao");
+  const btnVoltarRaca = document.getElementById("btnVoltarRaca");
+  const btnConfirmarRaca = document.getElementById("btnConfirmarRaca");
+  const btnComecarJogo = document.getElementById("btnComecarJogo");
+  const inReputacao = document.getElementById("inReputacao");
+  const painelInventario = document.getElementById("inventario");
+  const btnInventario = document.getElementById("btnInventario");
+  const bolinhaInventario = document.getElementById("bolinhaInventario");
+  const painelCombate = document.getElementById("painelCombate");
+
+  const RACAS = [
+    { emoji:"🧑", nome:"Humano" }, { emoji:"🧝", nome:"Elfo" },
+    { emoji:"⛏️", nome:"Anão" }, { emoji:"👹", nome:"Orc" },
+    { emoji:"🖤", nome:"Elfo Negro" }, { emoji:"🌗", nome:"Meio-Elfo" },
+    { emoji:"🍃", nome:"Halfling" }, { emoji:"🔧", nome:"Gnomo" },
+    { emoji:"😈", nome:"Tiefling" }, { emoji:"🐉", nome:"Draconato" },
+    { emoji:"😇", nome:"Anjo" }, { emoji:"🧛", nome:"Vampiro" },
+    { emoji:"🐺", nome:"Licantropo" }, { emoji:"🧚", nome:"Fada" }
+  ];
+
+  const CLASSES = [
+    { emoji:"⚔️", nome:"Guerreiro" }, { emoji:"🧙", nome:"Mago" },
+    { emoji:"🏹", nome:"Arqueiro" }, { emoji:"🗡️", nome:"Ladino" },
+    { emoji:"✨", nome:"Clérigo" }, { emoji:"🩸", nome:"Necromante" },
+    { emoji:"🎭", nome:"Bardo" }, { emoji:"🥋", nome:"Monge" },
+    { emoji:"🛡️", nome:"Paladino" }, { emoji:"🔮", nome:"Bruxo" },
+    { emoji:"🌿", nome:"Druida" }, { emoji:"🧪", nome:"Alquimista" },
+    { emoji:"👑", nome:"Deus", especial:true }
+  ];
+
+  let slots = [];
+  let slotAtual = -1;
+  let modoSelecionadoCriacao = "Facil";
+  let historico = [];
+  let somLigado = true;
+  let racaSelecionada = "Humano";
+  let classeSelecionada = "Guerreiro";
+  let criacaoTemp = {};
+  let combateAtivo = null;
+  let ficha = {
+    nome:"", personagem:"", mundo:"", inspiracao:"", modo:"Facil",
+    raca:"Humano", classe:"Guerreiro",
+    nivel:1, idade:"recém-nascido", hp:25, hpMax:25, estamina:18, estaminaMax:18,
+    forca:1, defesa:1, magia:1, sorte:3,
+    poderes:[], estado:"", inventario:[], memorias:[],
+    reputacaoAtiva:true, reputacoes:[], fama:""
+  };
+  let mensagensExibidas = [];
+  let aguardandoResposta = false;
+
+  const STATS_POR_MODO = {
+    Facil:  { hp:40, estamina:25 },
+    Medio:  { hp:25, estamina:18 },
+    Dificil:{ hp:15, estamina:12 }
+  };
+
+  function montarInstrucao(){
+    let bloco = `
+Você é o Mestre de um RPG de mesa por texto, em português do Brasil.
+
+Regras fixas do seu papel:
+- Você NUNCA decide o que o personagem do jogador faz, pensa ou sente. Isso é sempre escolha do jogador.
+- Você narra o mundo, os NPCs, e as consequências das ações do jogador.
+- Mantenha a narração com 2 a 4 parágrafos curtos, vívidos, sem excesso de descrição.
+- Adapte-se ao tom que o jogador está dando à história.
+- Nunca saia do personagem de Mestre. Nunca mencione que você é uma IA ou modelo de linguagem.
+
+Início de vida (MUITO IMPORTANTE):
+- Toda jornada começa no exato instante em que o personagem nasce, como um recém-nascido. Não importa o que o jogador descreveu sobre quem ele "é" — isso é quem ele vai se TORNAR ao crescer, não quem ele já é agora.
+- Narre o nascimento e a primeira cena como bebê (o que se vê, se ouve, quem está por perto), depois avance o tempo em saltos narrativos (dias, meses, anos) conforme a história progride e as escolhas do jogador permitem, até a infância, adolescência e vida adulta.
+- Enquanto o personagem for bebê ou criança pequena demais para agir sozinho, ofereça opções compatíveis com a idade (chorar, tentar engatinhar, observar, reagir a alguém) — não ações de adulto.
+- Atualize a idade do personagem no bloco de ficha conforme o tempo passa na história.
+- Raça escolhida: ${ficha.raca}. Classe/vocação escolhida: ${ficha.classe}${ficha.classe === "Deus" ? " (esse personagem eventualmente pode manifestar todos os tipos de poder existentes no mundo, de forma gradual conforme cresce — nunca tudo de uma vez ainda bebê)" : ""}. Construa a infância e os poderes do personagem de forma coerente com essa raça e essa classe.
+
+Inspiração em obra real (MUITO IMPORTANTE):
+- Se o jogador citou uma obra real (anime, filme, livro, jogo) como inspiração, o personagem do jogador NASCE como o protagonista daquela própria história (uma nova vida como esse mesmo protagonista), no mundo dela, com a mesma origem e contexto que essa obra estabelece.
+- Use de verdade os elementos que você conhece da obra: sistema de magia, geografia, facções, eventos e personagens importantes, tom da história, regras do mundo. Deixe a trama original acontecer ao redor do jogador.
+- A raça e a classe escolhidas pelo jogador podem ser diferentes das do protagonista original — quando forem diferentes, adapte a origem do personagem dentro do mesmo mundo e da mesma história para isso fazer sentido (ex: mesma trama e ambientação, mas com uma raça/vocação diferente da canônica), sem perder a ambientação pedida.
+- O jogador tem liberdade total para agir diferente do protagonista original a partir de suas próprias escolhas — a história pode divergir do material original conforme ele decide algo diferente, e você narra as consequências reais dessas escolhas.
+- Se você não tiver certeza sobre algum detalhe específico dessa obra, seja honesto: diga que não tem certeza sobre aquele detalhe específico, e ofereça 2 ou 3 opções plausíveis inspiradas no estilo geral da obra, em vez de inventar informações erradas como se fossem fato.
+- Nunca ignore a referência pedida — sempre conecte a ambientação criada com o que foi pedido.
+
+Modo de dificuldade escolhido: ${ficha.modo} (afeta apenas a severidade da narrativa e das consequências, nunca a mecânica da rolagem):
+- Facil: mundo mais gentil, inimigos mais fracos, perigo de dano é baixo.
+- Medio: perigo e recompensa equilibrados, ferimentos reais mas justos.
+- Dificil: mundo hostil, inimigos fortes, falhas custam bastante HP/estamina, decisões erradas têm peso real.
+
+Sistema de opções (MUITO IMPORTANTE):
+- Ao final de toda mensagem em que não estiver pedindo uma rolagem de dado, ofereça de 2 a 4 opções curtas e concretas do que o jogador pode fazer a seguir.
+- Formate exatamente assim, sem comentários extras dentro das marcações:
+[OPCOES]
+1. primeira opção
+2. segunda opção
+3. terceira opção
+[/OPCOES]
+- O jogador também pode ignorar as opções e digitar uma ação livre — continue a história a partir do que ele escrever.
+
+Sistema de dados:
+- Sempre que o jogador tentar algo arriscado ou entrar em combate, termine a mensagem com a marcação [ROLAR], sem oferecer [OPCOES] nessa mensagem, e sem resolver o resultado sozinho.
+- Você vai receber de volta o resultado da rolagem (sucesso, falha, ou crítico). Narre o que realmente acontece a partir disso, com consequências reais — inclusive na ficha (HP, estamina) quando fizer sentido.
+
+Sistema de combate (MUITO IMPORTANTE):
+- Sempre que o jogador estiver em um confronto ativo contra um inimigo, inclua um bloco assim, atualizado a cada mensagem enquanto o combate durar:
+[COMBATE]
+Inimigo: nome do inimigo
+HPInimigo: atual/maximo
+ATKInimigo: um número
+DEFInimigo: um número
+[/COMBATE]
+- Pare de incluir esse bloco assim que o combate terminar (vitória, fuga ou derrota).
+
+Sistema de atributos e ficha do personagem (MUITO IMPORTANTE):
+- HP inicial: ${ficha.hpMax}/${ficha.hpMax}. Estamina inicial: ${ficha.estaminaMax}/${ficha.estaminaMax}. Idade inicial: recém-nascido.
+- Além de HP e Estamina, o personagem tem os atributos Força, Defesa, Magia e Sorte, todos começando baixos (bebê) e crescendo aos poucos conforme a história, o nível e a classe do personagem evoluem.
+- Na primeira mensagem do jogo, e sempre que o personagem evoluir ou sofrer alguma mudança (idade avançar, subir de nível, atributo mudar, aprender poder, ganhar ou perder item, perder ou recuperar HP/estamina, ficar ferido, descansar), inclua um bloco de ficha ATUALIZADO E COMPLETO (nunca apenas o que mudou), formatado exatamente assim:
+[FICHA]
+Idade: a idade atual em texto curto, ex: "recém-nascido", "2 anos", "16 anos"
+Nivel: um número, começando em 1
+HP: atual/maximo
+Estamina: atual/maximo
+Forca: um número
+Defesa: um número
+Magia: um número
+Sorte: um número
+Poderes: liste todos os poderes atuais separados por ;
+Estado: uma frase curta sobre a condição atual
+[/FICHA]
+- O HP e a Estamina nunca devem passar do máximo definido. Reduza-os de forma coerente com a narrativa e o modo de dificuldade, e permita recuperação em momentos de descanso.
+
+Sistema de inventário (MUITO IMPORTANTE):
+- Sempre que o personagem ganhar, usar, perder ou trocar algum item, inclua um bloco com a lista COMPLETA e atualizada do inventário atual (nunca apenas o que mudou), formatado assim, um item por linha:
+[INVENTARIO]
+Nome do item x quantidade
+Outro item x quantidade
+[/INVENTARIO]
+- Se o inventário estiver vazio, ainda assim inclua o bloco, apenas sem nenhuma linha dentro.
+
+Sistema de mundo persistente / memória (MUITO IMPORTANTE):
+- Sempre que algo importante e duradouro acontecer (matar alguém importante, fazer uma promessa, destruir ou conquistar um lugar, formar uma aliança, ficar conhecido por algo, um segredo revelado), registre isso incluindo uma marcação assim para cada fato novo:
+[MEMORIA]um resumo curto e objetivo do fato, em uma frase[/MEMORIA]
+- Você pode incluir mais de uma marcação [MEMORIA] na mesma mensagem se mais de um fato importante aconteceu.
+- NÃO repita fatos que já foram registrados antes (eles aparecerão listados abaixo, se já houver algum).
+- Sempre que fizer sentido, reaja de forma coerente com fatos já registrados anteriormente (ex: NPCs souberam de algo que o jogador fez antes, mesmo longe de onde aconteceu, com o tempo).
+`;
+
+    if(ficha.reputacaoAtiva){
+      bloco += `
+Sistema de reputação e fama (ativado pelo jogador para este mundo):
+- Acompanhe como o personagem é visto por facções, reinos ou grupos relevantes da história, e uma fama geral.
+- Ações boas (ajudar pessoas, cumprir promessas, heroísmo) melhoram a reputação e a fama. Ações más (roubar, matar inocentes, trair) pioram.
+- Sempre que a reputação ou fama mudar, inclua no bloco de ficha (dentro do mesmo [FICHA]...[/FICHA], como linhas extras no final) o seguinte formato:
+Reputacao: Nome da Facção:+32; Outra Facção:-10
+Fama: um rótulo curto com emoji, ex: "🟢 Herói", "🔴 Procurado", "⚪ Desconhecido", "🟡 Controverso"
+`;
+    } else {
+      bloco += `
+Sistema de reputação e fama: DESATIVADO pelo jogador para este mundo. Não inclua reputação nem fama na ficha, e não trate NPCs de forma diferente com base numa fama formal — pode haver consequências narrativas normais das ações, apenas sem esse sistema numérico.
+`;
+    }
+
+    if(ficha.memorias.length > 0){
+      bloco += `\nFatos importantes que já aconteceram nesta jornada até agora (não repita estes, apenas seja coerente com eles):\n`;
+      ficha.memorias.forEach(function(m){ bloco += `- ${m}\n`; });
+    }
+
+    return bloco;
+  }

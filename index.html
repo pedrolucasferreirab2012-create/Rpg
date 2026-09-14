@@ -48,4 +48,114 @@
     0%,100%{ box-shadow:0 0 0 rgba(217,172,74,0); }
     50%{ box-shadow:0 0 18px rgba(217,172,74,0.55); }
   }
+ 
+  /* ---------- TELA DE MENU (SLOTS) ---------- */
+  #menu{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    padding:38px 20px;
+    overflow-y:auto;
+  }
+  .sigil{
+    width:44px; height:44px; margin:0 auto 14px;
+    border:1px solid var(--gold);
+    transform:rotate(45deg);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .sigil::before{
+    content:'';
+    width:18px; height:18px;
+    background:var(--gold-bright);
+    clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    transform:rotate(-45deg);
+  }
+  h1{
+    font-family:'Cinzel', serif;
+    font-size:clamp(26px,7vw,36px);
+    text-align:center;
+    margin:0 0 8px;
+  }
+  .lead{
+    text-align:center;
+    color:#a89dbb;
+    font-style:italic;
+    font-size:16px;
+    max-width:420px;
+    margin:0 auto 30px;
+    line-height:1.5;
+  }
+  .slots{ max-width:480px; width:100%; margin:0 auto; display:flex; flex-direction:column; gap:14px; }
+  .slot{
+    border:1px solid var(--line);
+    background:var(--ink-2);
+    border-radius:4px;
+    padding:16px 18px;
+    animation:surgir .4s ease both;
+  }
+  .slot.vazio{
+    display:flex; align-items:center; justify-content:space-between;
+    color:#8a809c; font-style:italic;
+  }
+  .slot-nome{ font-family:'Cinzel', serif; font-size:17px; color:var(--gold-bright); margin:0 0 4px; }
+  .slot-info{ font-size:14px; color:#c9bfa0; margin:0 0 12px; line-height:1.4; }
+  .slot-acoes{ display:flex; gap:10px; }
+  .slot-acoes button{
+    font-family:'EB Garamond', serif; font-style:italic; font-size:14px;
+    padding:8px 16px; border-radius:2px; cursor:pointer;
+  }
+  .btn-continuar{ background:linear-gradient(180deg, var(--gold-bright), var(--gold)); color:#241708; border:none; }
+  .btn-apagar{ background:transparent; border:1px solid var(--line); color:#c9bfa0; }
+  .btn-criar{ background:transparent; border:1px dashed var(--line); color:var(--gold-bright); font-family:'EB Garamond', serif; font-style:italic; font-size:15px; padding:10px 14px; border-radius:2px; cursor:pointer; }
+
+  /* ---------- TELA DE CRIAÇÃO ---------- */
+  #criacao{
+    display:none;
+    flex:1;
+    flex-direction:column;
+    padding:32px 22px 24px;
+    overflow-y:auto;
+  }
+  #criacao.ativo{ display:flex; }
+  .voltar-link{
+    align-self:flex-start;
+    background:none; border:none; color:#8a809c; font-family:'EB Garamond', serif;
+    font-style:italic; font-size:14px; cursor:pointer; margin-bottom:10px; padding:0;
+  }
+  .aviso{
+    max-width:460px; margin:0 auto 22px; padding:12px 14px;
+    border:1px solid var(--line); background:var(--ink-2);
+    font-size:14px; line-height:1.5; color:#c9bfa0;
+  }
+  .campo{ margin-bottom:20px; max-width:460px; width:100%; margin-left:auto; margin-right:auto; }
+  .campo label{
+    display:block; font-family:'Cinzel', serif; font-size:12px;
+    letter-spacing:1.2px; color:var(--gold-bright); margin-bottom:6px;
+  }
+  .campo small{ display:block; color:#8a809c; font-style:italic; font-size:13px; margin-top:4px; }
+  .campo input, .campo textarea{
+    width:100%; background:var(--ink-2); border:1px solid var(--line);
+    color:var(--parchment); font-family:'EB Garamond', serif; font-size:16px;
+    padding:12px 14px; border-radius:2px; resize:vertical;
+  }
+  .campo textarea{ min-height:70px; }
+  .campo input:focus, .campo textarea:focus{ outline:none; border-color:var(--gold-bright); }
+
+  .modos{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; max-width:460px; margin:0 auto 20px; }
+  .modo-btn{
+    background:var(--ink-2); border:1px solid var(--line); color:var(--parchment);
+    font-family:'Cinzel', serif; font-size:13px; letter-spacing:0.5px;
+    padding:12px 6px; border-radius:2px; cursor:pointer; text-align:center;
+  }
+  .modo-btn.selecionado{ border-color:var(--gold-bright); background:var(--ink-3); color:var(--gold-bright); animation:brilhoOuro 1.6s ease infinite; }
+
+  .comecar{
+    display:block; margin:16px auto 0; font-family:'Cinzel', serif; font-size:16px;
+    letter-spacing:1px; padding:15px 40px;
+    background:linear-gradient(180deg, var(--gold-bright), var(--gold)); color:#241708;
+    border:none; border-radius:2px; cursor:pointer;
+    box-shadow:0 5px 0 #6e5011, 0 8px 16px rgba(0,0,0,0.4);
+  }
+  .comecar:active{ transform:translateY(3px); box-shadow:0 2px 0 #6e5011; }
+  .comecar:disabled{ opacity:0.55; }
   
